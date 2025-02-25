@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Chat App</string>
+    <string name="default_notification_channel_id">DEFAULT_CHANNEL</string>
+</resources>
