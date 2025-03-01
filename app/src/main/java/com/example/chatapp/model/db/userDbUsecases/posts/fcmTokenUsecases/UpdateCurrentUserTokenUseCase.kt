@@ -1,7 +1,7 @@
 package com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases
 
 import android.util.Log
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
 import com.google.android.gms.tasks.Task
