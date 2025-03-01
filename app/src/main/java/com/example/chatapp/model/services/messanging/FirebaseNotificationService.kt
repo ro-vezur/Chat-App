@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.chatapp.Dtos.notification.NotificationBody
 import com.example.chatapp.MainActivity
@@ -32,9 +31,8 @@ class FirebaseNotificationService: FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-        Log.d("message",message.messageId.toString())
 
-        sendNotification(this.applicationContext,
+        sendLocalNotification(this.applicationContext,
             notificationData = NotificationBody(
                 title = message.notification?.title.toString(),
                 body = message.notification?.body.toString(),
@@ -43,7 +41,7 @@ class FirebaseNotificationService: FirebaseMessagingService() {
     }
 }
 
-private fun sendNotification(context: Context, notificationData: NotificationBody) {
+private fun sendLocalNotification(context: Context, notificationData: NotificationBody) {
     val intent = Intent(context, MainActivity::class.java)
     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
     val pendingIntent = PendingIntent.getActivity(
