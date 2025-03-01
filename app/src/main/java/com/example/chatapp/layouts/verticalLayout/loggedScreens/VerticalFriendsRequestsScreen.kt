@@ -19,8 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -31,12 +29,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.Dtos.requests.FriendRequest
 import com.example.chatapp.LocalUser
 import com.example.chatapp.R
@@ -45,6 +42,7 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.requestsScre
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.requestsScreen.requestsViewModel.FriendsRequestsUiState
 import com.example.chatapp.layouts.sharedComponents.inputFields.CustomSearchBar
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
+import com.example.chatapp.layouts.verticalLayout.sharedComponents.VerticalUseCardActionButton
 import com.example.chatapp.others.ResourceResult
 import com.example.chatapp.ui.theme.FriendColor
 import kotlinx.coroutines.launch
@@ -171,50 +169,24 @@ private fun UserRequestCard(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        IconButton(
-            modifier = Modifier
-                .padding(horizontal = 10.sdp)
-                .size(45.sdp),
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = Color.White
-            ),
+        VerticalUseCardActionButton(
+            icon = Icons.Filled.Clear,
+            colors = IconButtonDefaults.iconButtonColors(containerColor =  MaterialTheme.colorScheme.error),
             onClick = {
                 scope.launch {
                     dispatchEvent(FriendsRequestViewModelEvent.DeclineFriendRequest(request.userId))
                 }
             }
-        ) {
-            Icon(
-                modifier = Modifier
-                    .size(28.sdp),
-                imageVector = Icons.Filled.Clear,
-                contentDescription = "Decline reuqest",
-            )
-        }
+        )
 
-        IconButton(
-            modifier = Modifier
-                .padding(horizontal = 20.sdp)
-                .size(45.sdp),
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = FriendColor,
-                contentColor = Color.White
-            ),
+        VerticalUseCardActionButton(
+            icon = Icons.Filled.Check,
+            colors = IconButtonDefaults.iconButtonColors(containerColor = FriendColor),
             onClick = {
                 scope.launch {
                     dispatchEvent(FriendsRequestViewModelEvent.AcceptFriendRequest(mainUser.id,user.id))
-                    dispatchEvent(FriendsRequestViewModelEvent.AcceptFriendRequest(user.id,mainUser.id))
                 }
             }
-        ) {
-            Icon(
-                modifier = Modifier
-                    .size(26.sdp),
-                imageVector = Icons.Filled.Check,
-                contentDescription = "accept requesta",
-            )
-        }
-
+        )
     }
 }

@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.AcceptFriendRequestUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.DeclineFriendRequestUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.AcceptFriendRequestUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.DeclineFriendRequestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

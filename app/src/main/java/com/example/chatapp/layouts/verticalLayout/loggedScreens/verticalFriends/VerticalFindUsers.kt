@@ -19,9 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEmotions
+import androidx.compose.material.icons.filled.Pending
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
@@ -35,7 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.LocalUser
 import com.example.chatapp.R
 import com.example.chatapp.differentScreensSupport.sdp
@@ -43,6 +42,7 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScree
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModelEvent
 import com.example.chatapp.layouts.sharedComponents.inputFields.CustomSearchBar
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
+import com.example.chatapp.layouts.verticalLayout.sharedComponents.VerticalUseCardActionButton
 import com.example.chatapp.others.ResourceResult
 import com.example.chatapp.ui.theme.FriendColor
 import kotlinx.coroutines.delay
@@ -162,46 +162,37 @@ private fun SearchedUserCard(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        if(mainUser.friends.contains(searchedUser.id)) {
-            IconButton(
-                modifier = Modifier
-                    .padding(horizontal = 20.sdp)
-                    .size(45.sdp),
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = FriendColor
-                ),
-                onClick = {
+        when {
+            mainUser.friends.contains(searchedUser.id) -> {
+                VerticalUseCardActionButton(
+                    icon = Icons.Filled.EmojiEmotions,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = FriendColor,
+                        contentColor = Color.White,
+                    ),
+                    onClick = {
 
-                }
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(28.sdp),
-                    imageVector = Icons.Filled.EmojiEmotions,
-                    contentDescription = "Friend",
+                    }
                 )
             }
-        } else {
-            IconButton(
-                modifier = Modifier
-                    .padding(horizontal = 20.sdp)
-                    .size(45.sdp),
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
-                ),
-                onClick = {
-                    dispatchEvent(FriendsViewModelEvent.SendFriendRequest(mainUser,searchedUser))
-                }
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(26.sdp),
-                    imageVector = Icons.Filled.Send,
-                    contentDescription = "Send Request",
+            mainUser.sentRequestsToUsers.contains(searchedUser.id) -> {
+                VerticalUseCardActionButton(
+                    icon = Icons.Filled.Pending,
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary,),
+                    onClick = {
+
+                    }
+                )
+            }
+            else -> {
+                VerticalUseCardActionButton(
+                    icon = Icons.Filled.Send,
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary,),
+                    onClick = {
+                        dispatchEvent(FriendsViewModelEvent.SendFriendRequest(mainUser,searchedUser))
+                    }
                 )
             }
         }
-
     }
 }
