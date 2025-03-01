@@ -1,16 +1,12 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.Dtos.User
-import com.example.chatapp.Dtos.notification.NotificationBody
-import com.example.chatapp.Dtos.notification.NotificationData
-import com.example.chatapp.Dtos.notification.SendNotificationDto
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.model.db.userDbUsecases.gets.FindUsersByNameUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.SendFriendRequestUseCase
-import com.example.chatapp.model.services.messanging.SendRemoteNotificationUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.DeleteFriendUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.SendFriendRequestUseCase
 import com.example.chatapp.others.ResourceResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +21,7 @@ class FriendsViewModel @Inject constructor(
     private val findUsersByNameUseCase: FindUsersByNameUseCase,
     private val getUsersListWithIdsUseCase: GetUsersListWithIdsUseCase,
     private val sendFriendRequestUseCase: SendFriendRequestUseCase,
-    private val sendRemoteNotificationUseCase: SendRemoteNotificationUseCase
+    private val deleteFriendUseCase: DeleteFriendUseCase,
 ): ViewModel() {
 
     private val _friendsUiState: MutableStateFlow<FriendsUiState> = MutableStateFlow(FriendsUiState())
@@ -33,11 +29,13 @@ class FriendsViewModel @Inject constructor(
 
     fun dispatchEvent(event: FriendsViewModelEvent) {
         when(event) {
-            is FriendsViewModelEvent.SetTabIndex -> { setTabIndex(event.index) }
-            is FriendsViewModelEvent.UpdateSearchField -> { updateSearchField(event.query) }
-            is FriendsViewModelEvent.FindUsers -> { findUsers(event.query) }
-            is FriendsViewModelEvent.FetchMyFriends -> { fetchMyFriends(event.usersList) }
-            is FriendsViewModelEvent.SendFriendRequest -> { sendFriendRequest(event.sender,event.receiver) }
+            is FriendsViewModelEvent.SetTabIndex -> setTabIndex(event.index)
+            is FriendsViewModelEvent.UpdateSearchField -> updateSearchField(event.query)
+            is FriendsViewModelEvent.FindUsers -> findUsers(event.query)
+            is FriendsViewModelEvent.FetchMyFriends -> fetchMyFriends(event.usersList)
+            is FriendsViewModelEvent.SendFriendRequest -> sendFriendRequest(event.sender,event.receiver)
+            is FriendsViewModelEvent.DeleteFriend -> deleteFriend(event.friendId,event.onSuccess)
+            is FriendsViewModelEvent.SetFriendIdToDelete -> setFriendIdToDelete(event.friend)
         }
     }
 
@@ -81,27 +79,16 @@ class FriendsViewModel @Inject constructor(
     }
 
     private fun sendFriendRequest(sender: User, receiver: User) = viewModelScope.launch {
-        val sendFriendRequestTask = sendFriendRequestUseCase(sender,receiver)
-
-        Log.d("is send friend request successful?",sendFriendRequestTask.isSuccessful.toString())
-
-        if(sendFriendRequestTask.isSuccessful) {
-            receiver.fcmTokens.forEach { token ->
-                sendRemoteNotificationUseCase(
-                    sendNotificationDto = SendNotificationDto(
-                        token = token,
-                        topic = null,
-                        notificationBody = NotificationBody(
-                            title = "Friend Request",
-                            body = "${sender.name} Sent You Friend Request!"
-                        ),
-                        data = NotificationData(
-                            senderId = sender.id,
-                            type = "friend_request"
-                        )
-                    )
-                )
-            }
-        }
+        sendFriendRequestUseCase(sender,receiver)
      }
+
+    private fun deleteFriend(friendId: String, onSuccess: () -> Unit) = viewModelScope.launch {
+        deleteFriendUseCase(friendId, onSuccess = onSuccess)
+    }
+
+    private fun setFriendIdToDelete(friend: User?) = viewModelScope.launch {
+        _friendsUiState.emit(
+            _friendsUiState.value.copy(friendToDelete = friend)
+        )
+    }
 }
