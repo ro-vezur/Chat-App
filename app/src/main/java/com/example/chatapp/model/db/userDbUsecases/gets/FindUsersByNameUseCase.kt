@@ -1,6 +1,6 @@
 package com.example.chatapp.model.db.userDbUsecases.gets
 
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
 import com.example.chatapp.others.ResourceResult
 import com.google.firebase.firestore.FirebaseFirestore
@@ -19,11 +19,11 @@ class FindUsersByNameUseCase @Inject constructor(
     suspend operator fun invoke(query: String): Flow<ResourceResult<List<User>>> = flow {
         emit(ResourceResult.Loading())
 
-        val usersDocuments =  usersDb.get().await().documents
+        val usersDocuments =  usersDb.get().await()
         val users = usersDocuments.filter {
             it["name",String::class.java]?.contains(query,ignoreCase = false) == true &&
                     it["id",String::class.java] != getCurrentUserIdUseCase()
-        }.map { it.toObject(User::class.java)?: User() }
+        }.map { it.toObject(User::class.java) }
 
         emit(ResourceResult.Success(data = users))
     }.catch { e ->

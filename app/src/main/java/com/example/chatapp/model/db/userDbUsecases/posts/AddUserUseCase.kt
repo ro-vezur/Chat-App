@@ -1,6 +1,6 @@
 package com.example.chatapp.model.db.userDbUsecases.posts
 
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
 import com.example.chatapp.others.ResourceResult
 import com.google.firebase.firestore.FirebaseFirestore

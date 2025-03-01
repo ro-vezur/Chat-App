@@ -5,12 +5,14 @@ import com.example.chatapp.model.db.userDbUsecases.gets.FindUsersByNameUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.AcceptFriendRequestUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.DeclineFriendRequestUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.SendFriendRequestUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveLastUserTokenUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.DeleteFriendUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.UpdateCurrentUserTokenUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.AcceptFriendRequestUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.DeclineFriendRequestUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.SendFriendRequestUseCase
+import com.example.chatapp.model.services.messanging.SendRemoteNotificationUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -26,22 +28,51 @@ object UsersDbUsecasesDI {
 
     @Provides
     @Singleton
-    fun provideDeclineFriendRequestUseCase(
+    fun provideDeleteFriendUseCase(
         db: FirebaseFirestore,
-        getCurrentUserIdUseCase: GetCurrentUserIdUseCase
-    ): DeclineFriendRequestUseCase {
-        return DeclineFriendRequestUseCase(db, getCurrentUserIdUseCase)
+        getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+        sendRemoteNotificationUseCase: SendRemoteNotificationUseCase,
+        getUserUseCase: GetUserUseCase
+    ): DeleteFriendUseCase {
+        return DeleteFriendUseCase(
+            db = db,
+            getCurrentUserIdUseCase = getCurrentUserIdUseCase,
+            sendRemoteNotificationUseCase = sendRemoteNotificationUseCase,
+            getUserUseCase = getUserUseCase,
+        )
     }
 
     @Provides
     @Singleton
-    fun provideAcceptFriendRequestUseCase(db: FirebaseFirestore) = AcceptFriendRequestUseCase(db)
+    fun provideDeclineFriendRequestUseCase(
+        db: FirebaseFirestore,
+        getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+        sendRemoteNotificationUseCase: SendRemoteNotificationUseCase,
+        getUserUseCase: GetUserUseCase
+    ): DeclineFriendRequestUseCase {
+        return DeclineFriendRequestUseCase(
+            db = db,
+            getCurrentUserIdUseCase = getCurrentUserIdUseCase,
+            sendRemoteNotificationUseCase = sendRemoteNotificationUseCase,
+            getUserUseCase = getUserUseCase
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideAcceptFriendRequestUseCase(
+        db: FirebaseFirestore,
+        sendRemoteNotificationUseCase: SendRemoteNotificationUseCase,
+        getUserUseCase: GetUserUseCase
+    ): AcceptFriendRequestUseCase {
+        return AcceptFriendRequestUseCase(db,sendRemoteNotificationUseCase,getUserUseCase)
+    }
 
     @Provides
     @Singleton
     fun provideRemoveLastUserTokenUseCase(
         db: FirebaseFirestore,
-    ): RemoveLastUserTokenUseCase = RemoveLastUserTokenUseCase(db)
+    ): RemoveFcmTokenUseCase = RemoveFcmTokenUseCase(db)
 
     @Provides
     @Singleton
@@ -84,8 +115,11 @@ object UsersDbUsecasesDI {
 
     @Provides
     @Singleton
-    fun provideSendFriendRequestUseCase(db: FirebaseFirestore): SendFriendRequestUseCase {
-        return SendFriendRequestUseCase(db = db)
+    fun provideSendFriendRequestUseCase(
+        db: FirebaseFirestore,
+        sendRemoteNotificationUseCase: SendRemoteNotificationUseCase
+    ): SendFriendRequestUseCase {
+        return SendFriendRequestUseCase(db = db,sendRemoteNotificationUseCase)
     }
 
     @Provides
