@@ -10,7 +10,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.layouts.landscapeLayout.starterScreens.LandscapeLoginScreen
 import com.example.chatapp.layouts.verticalLayout.starterScreens.VerticalLoginScreen
 import com.example.chatapp.layouts.sharedComponents.validation.ValidationResult

@@ -2,12 +2,12 @@ package com.example.chatapp.layouts.mainLayout.starterScreens.signUpScreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.domain.auth.SignUpUseCase
 import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidateConfirmPassword
-import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidateEmail
+import com.example.chatapp.layouts.sharedComponents.validation.validators.email.ValidateEmailUseCase
 import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidateName
-import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidatePassword
+import com.example.chatapp.layouts.sharedComponents.validation.validators.password.ValidatePassword
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
 import com.example.chatapp.others.ResourceResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +21,7 @@ import javax.inject.Inject
 class SignUpViewModel @Inject constructor(
     private val signUpUseCase: SignUpUseCase,
     private val addUserUseCase: AddUserUseCase,
+    private val validateEmailUseCase: ValidateEmailUseCase
 ): ViewModel() {
 
     private val _signUpUiState: MutableStateFlow<SignUpUiState> = MutableStateFlow(SignUpUiState())
@@ -42,12 +43,14 @@ class SignUpViewModel @Inject constructor(
     fun updateEmail(
         email: String
     ) = viewModelScope.launch {
-        val emailValidationResult = ValidateEmail()
 
         _signUpUiState.emit(
             _signUpUiState.value.copy(
                 user = _signUpUiState.value.user.copy(email = email),
-                emailValidationResult = emailValidationResult(email)
+                emailValidationResult = validateEmailUseCase(
+                    email =  email,
+                    checkIsEmailRegisteredValidator = true
+                )
             )
         )
     }
@@ -87,7 +90,7 @@ class SignUpViewModel @Inject constructor(
         }
     }
 
-    fun addUserToDb(user: User,onSuccess: () -> Unit) = viewModelScope.launch {
+    fun addUserToDb(user: User, onSuccess: () -> Unit) = viewModelScope.launch {
         addUserUseCase(user.copy(isCustomProviderUsed = true)).collectLatest { result ->
             if(result is ResourceResult.Success) {
                 onSuccess()

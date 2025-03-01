@@ -1,4 +1,4 @@
-package com.example.chatapp.layouts.sharedComponents.validation.validators
+package com.example.chatapp.layouts.sharedComponents.validation.validators.password
 
 import com.example.chatapp.helpers.strings.containsDigit
 import com.example.chatapp.helpers.strings.containsLowercase

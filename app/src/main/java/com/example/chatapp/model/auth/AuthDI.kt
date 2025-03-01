@@ -4,7 +4,6 @@ import android.content.Context
 import com.example.chatapp.domain.auth.GoogleLogInUseCase
 import com.example.chatapp.domain.auth.LogInUseCase
 import com.example.chatapp.domain.auth.SignUpUseCase
-import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.UpdateCurrentUserTokenUseCase
 import com.google.firebase.auth.FirebaseAuth
@@ -51,12 +50,4 @@ object AuthDI {
         )
     }
 
-    @Provides
-    @Singleton
-    fun provideGetCurrentUserUseCase(auth: FirebaseAuth,getUserUseCase: GetUserUseCase): GetCurrentUserUseCase {
-        return GetCurrentUserUseCase(
-            auth = auth,
-            getUserUseCase = getUserUseCase,
-        )
-    }
 }

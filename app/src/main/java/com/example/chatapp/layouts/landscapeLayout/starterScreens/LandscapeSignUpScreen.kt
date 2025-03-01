@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.navigation.NavController
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.layouts.mainLayout.starterScreens.signUpScreen.SignUpUiState
 import com.example.chatapp.layouts.sharedComponents.validation.ValidatedTextField
 import com.example.chatapp.layouts.sharedComponents.validation.ValidationResult

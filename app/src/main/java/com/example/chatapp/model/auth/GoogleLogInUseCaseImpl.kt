@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.domain.auth.GoogleLogInUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
 import com.example.chatapp.others.ResourceResult

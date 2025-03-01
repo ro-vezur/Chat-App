@@ -1,6 +1,6 @@
 package com.example.chatapp.layouts.mainLayout.starterScreens.signUpScreen
 
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.layouts.sharedComponents.validation.ValidationResult
 import com.example.chatapp.others.ResourceResult
 import com.google.firebase.auth.AuthResult

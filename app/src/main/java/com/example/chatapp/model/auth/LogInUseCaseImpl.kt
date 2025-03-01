@@ -1,6 +1,6 @@
 package com.example.chatapp.model.auth
 
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.domain.auth.LogInUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.UpdateCurrentUserTokenUseCase
 import com.example.chatapp.others.ResourceResult

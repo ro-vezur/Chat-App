@@ -2,16 +2,16 @@ package com.example.chatapp
 
 import com.example.chatapp.layouts.sharedComponents.validation.ValidationResult
 import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidateConfirmPassword
-import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidateEmail
+import com.example.chatapp.layouts.sharedComponents.validation.validators.email.ValidateEmailUseCase
 import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidateName
-import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidatePassword
+import com.example.chatapp.layouts.sharedComponents.validation.validators.password.ValidatePassword
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SignUpValidationUnitTests {
 
     val nameValidation = ValidateName()
-    val emailValidation = ValidateEmail()
+    val emailValidation = ValidateEmailUseCase()
     val passwordValidation = ValidatePassword()
     val passwordConfirmValidation = ValidateConfirmPassword()
 
