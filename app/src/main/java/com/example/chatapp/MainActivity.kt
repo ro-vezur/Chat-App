@@ -21,7 +21,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.example.chatapp.Dtos.User
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.layouts.sharedComponents.viewmodels.UserViewModel
 import com.example.chatapp.ui.theme.ChatAppTheme
 import com.google.firebase.auth.FirebaseAuth
