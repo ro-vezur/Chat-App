@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import com.example.chatapp.Dtos.user.User
+import com.example.chatapp.LocalUser
 import com.example.chatapp.R
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.DeleteFriendAlertDialog
@@ -41,7 +42,7 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScree
 import com.example.chatapp.layouts.sharedComponents.inputFields.CustomSearchBar
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
 import com.example.chatapp.layouts.verticalLayout.sharedComponents.VerticalUseCardActionButton
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.others.Resource
 
 @Composable
 fun VerticalMyFriendsScreen(
@@ -68,11 +69,11 @@ fun VerticalMyFriendsScreen(
                 .padding(top = 15.sdp)
         ) {
             when (friendsUiState.myFriendsResult) {
-                is ResourceResult.Loading -> {
+                is Resource.Loading -> {
                     LoadingScreen(modifier = Modifier.fillMaxSize())
                 }
 
-                is ResourceResult.Success -> {
+                is Resource.Success -> {
                     friendsUiState.myFriendsResult.data?.let { users ->
 
                         val rememberUsersList by remember(friendsUiState.searchQuery) {
@@ -100,7 +101,7 @@ fun VerticalMyFriendsScreen(
                     }
                 }
 
-                is ResourceResult.Error -> {
+                is Resource.Error -> {
 
                 }
             }
@@ -129,6 +130,7 @@ private fun SearchedUserCard(
     user: User,
     dispatchEvent: (FriendsViewModelEvent) -> Unit,
 ) {
+    val mainUser = LocalUser.current
 
     Row(
         modifier = modifier,
@@ -176,7 +178,8 @@ private fun SearchedUserCard(
             icon = Icons.Filled.Chat,
             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
             onClick = {
-
+                dispatchEvent(FriendsViewModelEvent.AddChat(listOf(mainUser.id,user.id)))
+            //    dispatchEvent(FriendsViewModelEvent.OnNavigate("chat/${user.id}"))
             }
         )
     }

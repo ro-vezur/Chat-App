@@ -1,9 +1,9 @@
 package com.example.chatapp.model.db.userDbUsecases.posts
 
-import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.Dtos.notification.NotificationBody
 import com.example.chatapp.Dtos.notification.NotificationData
 import com.example.chatapp.Dtos.notification.SendNotificationDto
+import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
@@ -51,7 +51,7 @@ class DeleteFriendUseCase @Inject constructor(
            receiver.fcmTokens.forEach { token ->
                sendRemoteNotificationUseCase(
                    sendNotificationDto = SendNotificationDto(
-                       token = token,
+                       token = token.key,
                        topic = null,
                        notificationBody = NotificationBody(
                            title = "Lost a Friend!",

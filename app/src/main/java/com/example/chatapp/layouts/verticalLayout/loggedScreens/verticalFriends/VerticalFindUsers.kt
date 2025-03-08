@@ -1,7 +1,6 @@
 package com.example.chatapp.layouts.verticalLayout.loggedScreens.verticalFriends
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,19 +30,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import coil.compose.AsyncImage
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.LocalUser
-import com.example.chatapp.R
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsUiState
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModelEvent
+import com.example.chatapp.layouts.sharedComponents.images.UserImage
 import com.example.chatapp.layouts.sharedComponents.inputFields.CustomSearchBar
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
 import com.example.chatapp.layouts.verticalLayout.sharedComponents.VerticalUseCardActionButton
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.others.Resource
 import com.example.chatapp.ui.theme.FriendColor
 import kotlinx.coroutines.delay
 
@@ -82,10 +78,10 @@ fun VerticalFindUsers(
         ) {
             if(friendsUiState.searchQuery.isNotEmpty()) {
                 when(friendsUiState.findFriendsResult) {
-                    is ResourceResult.Loading -> {
+                    is Resource.Loading -> {
                         LoadingScreen(modifier = Modifier.fillMaxSize())
                     }
-                    is ResourceResult.Success -> {
+                    is Resource.Success -> {
                         friendsUiState.findFriendsResult.data?.let { users ->
                             LazyColumn(
                                 modifier = Modifier
@@ -107,7 +103,7 @@ fun VerticalFindUsers(
                             }
                         }
                     }
-                    is ResourceResult.Error -> {
+                    is Resource.Error -> {
 
                     }
                 }
@@ -132,26 +128,13 @@ private fun SearchedUserCard(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if(searchedUser.imageUrl != null) {
-            AsyncImage(
-                modifier = Modifier
-                    .size(52.sdp)
-                    .clip(CircleShape),
-                model = searchedUser.imageUrl,
-                contentDescription = "user image",
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Image(
-                modifier = Modifier
-                    .size(52.sdp)
-                    .clip(CircleShape),
-                painter = painterResource(id = R.drawable.empty_profile),
-                contentDescription = "empty user image",
-                contentScale = ContentScale.Crop
-            )
-        }
 
+        UserImage(
+            modifier = Modifier
+                .size(52.sdp)
+                .clip(CircleShape),
+            imageUrl = searchedUser.imageUrl
+        )
 
         Text(
             modifier = Modifier
