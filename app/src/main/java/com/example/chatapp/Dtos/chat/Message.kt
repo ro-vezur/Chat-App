@@ -1,11 +1,16 @@
 package com.example.chatapp.Dtos.chat
 
-import kotlinx.serialization.Serializable
+import com.example.chatapp.DD_MM_YYYY
+import com.example.chatapp.helpers.time.getDateFromMillis
 
-@Serializable
 data class Message(
-  //  val id: String = "",
-    val role: String = "",
+    val id: String = "",
+    val userId: String = "",
+    val chatId: String = "",
     val content: String = "",
-   // val sentDate: String = "",
-)
+    val sentTimeStamp: Long = 0,
+    val seenBy: MutableList<String> = mutableListOf(),
+    ) {
+    fun formatDate(): String = getDateFromMillis(this.sentTimeStamp,DD_MM_YYYY)
+
+}
