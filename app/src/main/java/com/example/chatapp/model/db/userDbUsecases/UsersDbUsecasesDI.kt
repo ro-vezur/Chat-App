@@ -5,10 +5,13 @@ import com.example.chatapp.model.db.userDbUsecases.gets.FindUsersByNameUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCase
+import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.DeleteFriendUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.SetLastTimeSeenUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.UpdateOnlineStatusUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.AddFcmTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.UpdateCurrentUserTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.AcceptFriendRequestUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.DeclineFriendRequestUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.SendFriendRequestUseCase
@@ -25,6 +28,30 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object UsersDbUsecasesDI {
+
+    @Provides
+    @Singleton
+    fun provideSetLastTimeSeenUseCase(
+        db: FirebaseFirestore,
+        getCurrentUserIdUseCase: GetCurrentUserIdUseCase
+    ): SetLastTimeSeenUseCase {
+        return SetLastTimeSeenUseCase(db,getCurrentUserIdUseCase)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateOnlineStatuesUseCase(
+        db: FirebaseFirestore,
+        getCurrentUserIdUseCase: GetCurrentUserIdUseCase
+    ): UpdateOnlineStatusUseCase {
+        return UpdateOnlineStatusUseCase(db,getCurrentUserIdUseCase)
+    }
+
+    @Provides
+    @Singleton
+    fun provideObserveUserUseCase(db: FirebaseFirestore): ObserveUserUseCase {
+        return ObserveUserUseCase(db)
+    }
 
     @Provides
     @Singleton
@@ -79,8 +106,8 @@ object UsersDbUsecasesDI {
     fun provideUpdateCurrentUserTokenUseCase(
         getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
         db: FirebaseFirestore,
-    ): UpdateCurrentUserTokenUseCase {
-        return UpdateCurrentUserTokenUseCase(getCurrentUserIdUseCase, db,)
+    ): AddFcmTokenUseCase {
+        return AddFcmTokenUseCase(getCurrentUserIdUseCase, db,)
     }
 
     @Provides

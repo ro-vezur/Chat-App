@@ -2,7 +2,7 @@ package com.example.chatapp.model.db.userDbUsecases.gets
 
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.others.Resource
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -15,16 +15,16 @@ class GetUsersListWithIdsUseCase @Inject constructor(
 ) {
     private val usersDb  = db.collection(USERS_DB_COLLECTION)
 
-    suspend operator fun invoke(ids: List<String>): Flow<ResourceResult<List<User>>> = flow {
-        emit(ResourceResult.Loading())
+    suspend operator fun invoke(ids: List<String>): Flow<Resource<List<User>>> = flow {
+        emit(Resource.Loading())
 
         val documents = usersDb.get().await().documents
 
-        emit(ResourceResult.Success(
+        emit(Resource.Success(
             data = documents.filter { ids.contains(it.id) }.map { it.toObject(User::class.java)?: User() })
         )
     }.catch { e ->
-        emit(ResourceResult.Error(message = e.message.toString()))
+        emit(Resource.Error(message = e.message.toString()))
     }
 
 }
