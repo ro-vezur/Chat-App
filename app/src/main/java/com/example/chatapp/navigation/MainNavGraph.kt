@@ -12,7 +12,8 @@ import com.example.chatapp.layouts.mainLayout.starterScreens.starterNavGraph
 fun MainNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    isLogged: Boolean
+    isLogged: Boolean,
+    updateBottomBarState: (Boolean) -> Unit,
 ) {
 
     NavHost(
@@ -23,6 +24,9 @@ fun MainNavGraph(
     ) {
         starterNavGraph(navController)
 
-        loggedNavGraph(navController)
+        loggedNavGraph(
+            navController = navController,
+            updateBottomBarState = updateBottomBarState,
+        )
     }
 }

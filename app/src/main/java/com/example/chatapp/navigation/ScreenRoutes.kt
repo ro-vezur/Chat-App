@@ -29,7 +29,10 @@ object ScreenRoutes {
         data object FriendsRoute
 
         @Serializable
-        data object ChatRoute
+        data object OneToOneChatRoute {
+            const val MAIN_ROUTE_PART = "OneToOneChat"
+            const val ROUTE = "$MAIN_ROUTE_PART/{chatId}/{userId}"
+        }
 
         @Serializable
         data object SettingsRoute

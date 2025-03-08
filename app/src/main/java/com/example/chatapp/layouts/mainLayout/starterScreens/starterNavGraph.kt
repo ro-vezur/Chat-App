@@ -13,7 +13,7 @@ import com.example.chatapp.layouts.mainLayout.starterScreens.logInScreen.LogInVi
 import com.example.chatapp.layouts.mainLayout.starterScreens.signUpScreen.SignUpScreen
 import com.example.chatapp.layouts.mainLayout.starterScreens.signUpScreen.SignUpViewModel
 import com.example.chatapp.navigation.ScreenRoutes
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.others.Resource
 
 fun NavGraphBuilder.starterNavGraph(navController: NavController) {
 
@@ -44,10 +44,10 @@ fun NavGraphBuilder.starterNavGraph(navController: NavController) {
 
             LaunchedEffect(signUpUiState.signUpResult) {
                 when(signUpUiState.signUpResult) {
-                    is ResourceResult.Loading -> {
+                    is Resource.Loading -> {
 
                     }
-                    is ResourceResult.Success -> {
+                    is Resource.Success -> {
                         signUpViewModel.addUserToDb(
                             user = signUpUiState.user.copy(
                                 id = signUpUiState.signUpResult.data?.user?.uid.toString(),
@@ -58,7 +58,7 @@ fun NavGraphBuilder.starterNavGraph(navController: NavController) {
                             }
                         )
                     }
-                    is ResourceResult.Error -> {
+                    is Resource.Error -> {
 
                     }
                 }
@@ -82,13 +82,13 @@ fun NavGraphBuilder.starterNavGraph(navController: NavController) {
 
             LaunchedEffect(logInUiState.logInResult) {
                 when(logInUiState.logInResult) {
-                    is ResourceResult.Loading -> {
+                    is Resource.Loading -> {
 
                     }
-                    is ResourceResult.Success -> {
+                    is Resource.Success -> {
                         navController.navigate(ScreenRoutes.LoggedScreens)
                     }
-                    is ResourceResult.Error -> {
+                    is Resource.Error -> {
 
                     }
                 }
