@@ -121,4 +121,11 @@ dependencies {
 
     //data store
     implementation(libs.data.store)
+
+    //accompanist
+    implementation(libs.accompanist.permissions)
+
+    //paging
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
 }

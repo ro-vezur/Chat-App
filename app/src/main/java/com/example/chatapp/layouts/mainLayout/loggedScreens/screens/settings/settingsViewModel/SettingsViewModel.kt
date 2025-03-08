@@ -2,7 +2,10 @@ package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.settings.se
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.UpdateCurrentUserTokenUseCase
+import com.example.chatapp.helpers.time.getCurrentTimeInMillis
+import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.SetLastTimeSeenUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
@@ -16,8 +19,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val updateCurrentUserTokenUseCase: UpdateCurrentUserTokenUseCase,
+    private val removeTokenUseCase: RemoveFcmTokenUseCase,
     private val auth: FirebaseAuth,
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+    private val setLastTimeSeenUseCase: SetLastTimeSeenUseCase
 ): ViewModel() {
     private val _settingsUiState: MutableStateFlow<SettingsUiState> = MutableStateFlow(
         SettingsUiState()
@@ -33,9 +38,15 @@ class SettingsViewModel @Inject constructor(
     private fun logOut() = viewModelScope.launch {
         val newToken = Firebase.messaging.token.await()
 
-        updateCurrentUserTokenUseCase(newToken).addOnSuccessListener {
-            auth.signOut()
-        }
+        setLastTimeSeenUseCase(getCurrentTimeInMillis())
+
+        removeTokenUseCase(
+            userId = getCurrentUserIdUseCase(),
+            token = newToken,
+            onSuccess = {
+                auth.signOut()
+            }
+        )
     }
 
 }

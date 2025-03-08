@@ -23,6 +23,8 @@ splashScreen = "1.0.1"
 firebaseMessaging = "24.1.0"
 retrofit = "2.10.0"
 dataStore = "1.1.2"
+accompanist-permissions = "0.33.1-alpha"
+androidx-paging = "3.3.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -55,6 +57,9 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 data-store = { module = "androidx.datastore:datastore-preferences", version.ref = "dataStore" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-permissions"}
+androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "androidx-paging" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

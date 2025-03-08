@@ -26,7 +26,8 @@ val SmallScreenTypography = Typography(
     bodyLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Normal, fontSize = 16.sp,),
     bodyMedium = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Normal, fontSize = 14.sp,),
     bodySmall = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Light, fontSize = 12.sp,),
-    labelLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 20.sp,)
+    labelLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 20.sp,),
+    labelMedium = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 18.sp,),
 )
 
 // Typography for medium screens (tablets, foldables)
@@ -40,7 +41,8 @@ val MediumScreenTypography = Typography(
     bodyLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Normal, fontSize = 22.sp,),
     bodyMedium = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Normal, fontSize = 20.sp,),
     bodySmall = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Light, fontSize = 16.sp,),
-    labelLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 26.sp,)
+    labelLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 26.sp,),
+    labelMedium = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 22.sp,),
 )
 
 // Typography for large screens (tablets in landscape mode, desktops)
@@ -54,5 +56,6 @@ val LargeScreenTypography = Typography(
     bodyLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Normal, fontSize = 22.sp,),
     bodyMedium = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Normal, fontSize = 20.sp),
     bodySmall = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Light, fontSize = 18.sp),
-    labelLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 30.sp)
+    labelLarge = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 30.sp),
+    labelMedium = TextStyle(fontFamily = ChatBotFontFamily, fontWeight = FontWeight.Bold, fontSize = 26.sp,),
 )
