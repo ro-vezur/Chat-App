@@ -8,7 +8,8 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import com.example.chatapp.FCM_PREFERENCES
+import com.example.chatapp.PERMISSIONS_PREFERENCES
+import com.example.chatapp.model.datastore.permissionPreferences.PermissionsPreferencesRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,14 +24,20 @@ object DatastoreDI {
 
     @Provides
     @Singleton
-    fun provideFcmDataStore( @ApplicationContext context: Context): DataStore<Preferences> {
+    fun providePermissionStore( @ApplicationContext context: Context): DataStore<Preferences> {
         return PreferenceDataStoreFactory.create(
             corruptionHandler = ReplaceFileCorruptionHandler(
                 produceNewData = { emptyPreferences() }
             ),
-            migrations = listOf(SharedPreferencesMigration(context, FCM_PREFERENCES)),
-            produceFile = { context.preferencesDataStoreFile(FCM_PREFERENCES) }
+            migrations = listOf(SharedPreferencesMigration(context, PERMISSIONS_PREFERENCES)),
+            produceFile = { context.preferencesDataStoreFile(PERMISSIONS_PREFERENCES) }
         )
     }
 
+
+    @Provides
+    @Singleton
+    fun providePermissionsPreferencesRepository(datastore: DataStore<Preferences>): PermissionsPreferencesRepository {
+        return PermissionsPreferencesRepository(datastore)
+    }
 }
