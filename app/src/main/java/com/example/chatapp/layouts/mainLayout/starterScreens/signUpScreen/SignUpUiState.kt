@@ -2,7 +2,7 @@ package com.example.chatapp.layouts.mainLayout.starterScreens.signUpScreen
 
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.layouts.sharedComponents.validation.ValidationResult
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.others.Resource
 import com.google.firebase.auth.AuthResult
 
 data class SignUpUiState(
@@ -12,5 +12,5 @@ data class SignUpUiState(
     val emailValidationResult: ValidationResult = ValidationResult.None,
     val passwordValidationResult: ValidationResult = ValidationResult.None,
     val passwordConfirmValidationResult: ValidationResult = ValidationResult.None,
-    val signUpResult: ResourceResult<AuthResult> = ResourceResult.Loading()
+    val signUpResult: Resource<AuthResult> = Resource.Loading()
 )

@@ -62,7 +62,7 @@ class LogInViewModel @Inject constructor(
 
     fun logIn(user: User) = viewModelScope.launch {
 
-        updateUserLogInStateUseCase(user.email)
+        updateUserLogInStateUseCase(user.email,user.password)
 
         val userLoginState = getUserLoginStateUseCase(user.email)
 

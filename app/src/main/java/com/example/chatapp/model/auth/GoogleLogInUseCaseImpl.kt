@@ -7,7 +7,7 @@ import androidx.credentials.GetCredentialRequest
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.domain.auth.GoogleLogInUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.others.Resource
 import com.example.chatapp.webClientId
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -24,8 +24,8 @@ class GoogleLogInUseCaseImpl @Inject constructor(
     private val context: Context,
     private val addUserUseCase: AddUserUseCase,
 ): GoogleLogInUseCase {
-    override operator fun invoke(): Flow<ResourceResult<AuthResult>> = flow {
-        emit(ResourceResult.Loading())
+    override operator fun invoke(): Flow<Resource<AuthResult>> = flow {
+        emit(Resource.Loading())
 
         val googleOption: GetSignInWithGoogleOption = GetSignInWithGoogleOption.Builder(webClientId)
             .build()
@@ -56,7 +56,7 @@ class GoogleLogInUseCaseImpl @Inject constructor(
                             )
                         val signInResult = firebaseAuth.signInWithCredential(firebaseCredential).await()
 
-                        emit(ResourceResult.Success(data = signInResult))
+                        emit(Resource.Success(data = signInResult))
 
                         val user = User(
                             id = signInResult.user?.uid.toString(),
@@ -70,7 +70,7 @@ class GoogleLogInUseCaseImpl @Inject constructor(
 
                     } catch (e: Exception) {
                         emit(
-                            ResourceResult.Error(
+                            Resource.Error(
                                 message = e.message.toString(),
                             )
                         )
@@ -79,7 +79,7 @@ class GoogleLogInUseCaseImpl @Inject constructor(
             }
         } catch (e: Exception) {
             emit(
-                ResourceResult.Error(
+                Resource.Error(
                     message = e.message.toString()
                 )
             )

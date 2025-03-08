@@ -2,8 +2,8 @@ package com.example.chatapp.model.auth
 
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.domain.auth.LogInUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.UpdateCurrentUserTokenUseCase
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.AddFcmTokenUseCase
+import com.example.chatapp.others.Resource
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
@@ -16,18 +16,18 @@ import javax.inject.Inject
 
 class LogInUseCaseImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val updateCurrentUserTokenUseCase: UpdateCurrentUserTokenUseCase,
+    private val updateCurrentUserTokenUseCase: AddFcmTokenUseCase,
 ): LogInUseCase {
-    override operator fun invoke(user: User): Flow<ResourceResult<AuthResult>> = flow {
-        emit(ResourceResult.Loading())
+    override operator fun invoke(user: User): Flow<Resource<AuthResult>> = flow {
+        emit(Resource.Loading())
 
         val result = firebaseAuth.signInWithEmailAndPassword(user.email,user.password).await()
         val newToken = Firebase.messaging.token.await()
 
         updateCurrentUserTokenUseCase(newToken)
 
-        emit(ResourceResult.Success(data = result))
+        emit(Resource.Success(data = result))
     }.catch { e ->
-        emit(ResourceResult.Error(message = e.message.toString()))
+        emit(Resource.Error(message = e.message.toString()))
     }
 }

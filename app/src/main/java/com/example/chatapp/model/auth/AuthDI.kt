@@ -5,7 +5,7 @@ import com.example.chatapp.domain.auth.GoogleLogInUseCase
 import com.example.chatapp.domain.auth.LogInUseCase
 import com.example.chatapp.domain.auth.SignUpUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.UpdateCurrentUserTokenUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.AddFcmTokenUseCase
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
@@ -22,7 +22,7 @@ object AuthDI {
     @Singleton
     fun provideSignUpUseCase(
         firebaseAuth: FirebaseAuth,
-        updateCurrentUserTokenUseCase: UpdateCurrentUserTokenUseCase,
+        updateCurrentUserTokenUseCase: AddFcmTokenUseCase,
     ): SignUpUseCase {
         return SignUpUseCaseImpl(firebaseAuth = firebaseAuth,updateCurrentUserTokenUseCase)
     }
@@ -31,7 +31,7 @@ object AuthDI {
     @Singleton
     fun provideLogInUseCase(
         firebaseAuth: FirebaseAuth,
-        updateCurrentUserTokenUseCase: UpdateCurrentUserTokenUseCase,
+        updateCurrentUserTokenUseCase: AddFcmTokenUseCase,
     ): LogInUseCase {
         return LogInUseCaseImpl(firebaseAuth = firebaseAuth,updateCurrentUserTokenUseCase = updateCurrentUserTokenUseCase)
     }

@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.domain.auth.SignUpUseCase
 import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidateConfirmPassword
-import com.example.chatapp.layouts.sharedComponents.validation.validators.email.ValidateEmailUseCase
 import com.example.chatapp.layouts.sharedComponents.validation.validators.ValidateName
+import com.example.chatapp.layouts.sharedComponents.validation.validators.email.ValidateEmailUseCase
 import com.example.chatapp.layouts.sharedComponents.validation.validators.password.ValidatePassword
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.others.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -87,12 +87,15 @@ class SignUpViewModel @Inject constructor(
             _signUpUiState.emit(
                 _signUpUiState.value.copy(signUpResult = result)
             )
+            if(result is Resource.Success) {
+
+            }
         }
     }
 
     fun addUserToDb(user: User, onSuccess: () -> Unit) = viewModelScope.launch {
         addUserUseCase(user.copy(isCustomProviderUsed = true)).collectLatest { result ->
-            if(result is ResourceResult.Success) {
+            if(result is Resource.Success) {
                 onSuccess()
             }
         }

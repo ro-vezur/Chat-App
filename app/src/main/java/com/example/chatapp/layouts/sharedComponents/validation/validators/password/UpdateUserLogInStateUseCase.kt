@@ -16,7 +16,7 @@ class UpdateUserLogInStateUseCase @Inject constructor(
 ) {
     val usersDb = db.collection(USERS_DB_COLLECTION)
 
-    suspend operator fun invoke(email: String) {
+    suspend operator fun invoke(email: String,password: String) {
         try {
             val usersDocuments = usersDb.whereEqualTo("email",email).get().await().documents
             val userDocumentRef = usersDocuments.first().reference
@@ -36,13 +36,18 @@ class UpdateUserLogInStateUseCase @Inject constructor(
                         }
                     }
 
-                    logInState = logInState.copy(failedAttempts = logInState.failedAttempts + 1)
+                    if(user.password != password) {
 
-                    if(logInState.failedAttempts >= MAX_LOGIN_ATTEMPTS) {
-                        logInState = logInState.copy(blockedUntil = getFutureTimeInMillis(AWAIT_TIME_UNTIL_UNBLOCK))
-                        transaction.update(userDocumentRef,"logInState",logInState)
-                    } else {
-                        transaction.update(userDocumentRef,"logInState",logInState)
+                        logInState = logInState.copy(failedAttempts = logInState.failedAttempts + 1)
+
+                        if (logInState.failedAttempts >= MAX_LOGIN_ATTEMPTS) {
+                            logInState = logInState.copy(
+                                blockedUntil = getFutureTimeInMillis(AWAIT_TIME_UNTIL_UNBLOCK)
+                            )
+                            transaction.update(userDocumentRef, "logInState", logInState)
+                        } else {
+                            transaction.update(userDocumentRef, "logInState", logInState)
+                        }
                     }
 
                 } else {
