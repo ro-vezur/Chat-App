@@ -43,7 +43,7 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.requestsScre
 import com.example.chatapp.layouts.sharedComponents.inputFields.CustomSearchBar
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
 import com.example.chatapp.layouts.verticalLayout.sharedComponents.VerticalUseCardActionButton
-import com.example.chatapp.others.ResourceResult
+import com.example.chatapp.others.Resource
 import com.example.chatapp.ui.theme.FriendColor
 import kotlinx.coroutines.launch
 
@@ -84,10 +84,10 @@ fun VerticalFriendsRequestsScreen(
             contentAlignment = Alignment.Center,
         ) {
             when(friendsRequestsUiState.requestsResult) {
-                is ResourceResult.Loading -> {
+                is Resource.Loading -> {
                     LoadingScreen(modifier = Modifier.fillMaxSize())
                 }
-                is ResourceResult.Success -> {
+                is Resource.Success -> {
                     friendsRequestsUiState.requestsResult.data?.let { requestsUsersList ->
                         if(requestsUsersList.isNotEmpty()) {
                             LazyColumn(
@@ -118,7 +118,7 @@ fun VerticalFriendsRequestsScreen(
                         }
                     }
                 }
-                is ResourceResult.Error -> {
+                is Resource.Error -> {
 
                 }
             }
