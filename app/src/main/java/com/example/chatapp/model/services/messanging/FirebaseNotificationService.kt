@@ -12,7 +12,7 @@ import com.example.chatapp.Dtos.notification.NotificationBody
 import com.example.chatapp.MainActivity
 import com.example.chatapp.R
 import com.example.chatapp.helpers.time.getCurrentTimeInMillis
-import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.UpdateCurrentUserTokenUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.AddFcmTokenUseCase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,11 +21,10 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class FirebaseNotificationService: FirebaseMessagingService() {
 
-    @Inject lateinit var updateCurrentUserTokenUseCase: UpdateCurrentUserTokenUseCase
+    @Inject lateinit var updateCurrentUserTokenUseCase: AddFcmTokenUseCase
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-
         updateCurrentUserTokenUseCase(token)
     }
 
