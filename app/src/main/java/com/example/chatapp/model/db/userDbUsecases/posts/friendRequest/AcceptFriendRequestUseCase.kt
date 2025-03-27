@@ -71,7 +71,7 @@ class AcceptFriendRequestUseCase @Inject constructor(
             receiver.fcmTokens.forEach { token ->
                 sendRemoteNotificationUseCase(
                     sendNotificationDto = SendNotificationDto(
-                        token = token.key,
+                        token = token,
                         topic = null,
                         notificationBody = NotificationBody(
                             title = "New Friend!",
@@ -82,7 +82,7 @@ class AcceptFriendRequestUseCase @Inject constructor(
                             receiverId = receiver.id,
                             type = "accept_friend_request"
                         )
-                    )
+                    ),
                 )
             }
         }

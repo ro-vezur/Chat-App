@@ -48,23 +48,23 @@ class DeleteFriendUseCase @Inject constructor(
         val receiver = getUserUseCase(friendId)
 
         if(sendNotificationFlag && sender != null && receiver != null) {
-           receiver.fcmTokens.forEach { token ->
-               sendRemoteNotificationUseCase(
-                   sendNotificationDto = SendNotificationDto(
-                       token = token.key,
-                       topic = null,
-                       notificationBody = NotificationBody(
-                           title = "Lost a Friend!",
-                           body = "${sender.name} Deleted You From Friends List!"
-                       ),
-                       data = NotificationData(
-                           senderId = sender.id,
-                           receiverId = receiver.id,
-                           type = "delete_friend"
-                       )
-                   )
-               )
-           }
+            receiver.fcmTokens.forEach { token ->
+                sendRemoteNotificationUseCase(
+                    sendNotificationDto = SendNotificationDto(
+                        token = token,
+                        topic = null,
+                        notificationBody = NotificationBody(
+                            title = "Lost a Friend!",
+                            body = "${sender.name} Deleted You From Friends List!"
+                        ),
+                        data = NotificationData(
+                            senderId = sender.id,
+                            receiverId = receiver.id,
+                            type = "delete_friend"
+                        )
+                    ),
+                )
+            }
 
             onSuccess()
         }

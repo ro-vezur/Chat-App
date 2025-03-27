@@ -13,14 +13,14 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class SendFriendRequestUseCase @Inject constructor(
-    private val db: FirebaseFirestore,
+    private val fireStore: FirebaseFirestore,
     private val sendRemoteNotificationUseCase: SendRemoteNotificationUseCase,
 ) {
-    private val usersDb = db.collection(USERS_DB_COLLECTION)
+    private val usersDb = fireStore.collection(USERS_DB_COLLECTION)
     private var sendNotificationFlag = false
 
     suspend operator fun invoke(sender: User, receiver: User){
-        db.runTransaction { transaction ->
+        fireStore.runTransaction { transaction ->
             val senderDocumentRef = usersDb.document(sender.id)
             val user = transaction.get(senderDocumentRef).toObject(User::class.java)
 
@@ -36,7 +36,7 @@ class SendFriendRequestUseCase @Inject constructor(
             }
         }.await()
 
-        db.runTransaction { transaction ->
+        fireStore.runTransaction { transaction ->
             val receiverDocumentRef = usersDb.document(receiver.id)
             val user = transaction.get(receiverDocumentRef).toObject(User::class.java)
 
@@ -56,7 +56,7 @@ class SendFriendRequestUseCase @Inject constructor(
             receiver.fcmTokens.forEach { token ->
                 sendRemoteNotificationUseCase(
                     sendNotificationDto = SendNotificationDto(
-                        token = token.key,
+                        token = token,
                         topic = null,
                         notificationBody = NotificationBody(
                             title = "Friend Request",
@@ -67,7 +67,7 @@ class SendFriendRequestUseCase @Inject constructor(
                             receiverId = receiver.id,
                             type = "friend_request"
                         )
-                    )
+                    ),
                 )
             }
         }

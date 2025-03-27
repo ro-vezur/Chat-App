@@ -3,37 +3,35 @@ package com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class RemoveFcmTokenUseCase @Inject constructor(
-    private val db: FirebaseFirestore,
+    private val fireStore: FirebaseFirestore,
 ) {
-    private val usersDb = db.collection(USERS_DB_COLLECTION)
-    private var isSuccess = false
+    private val usersCollection = fireStore.collection(USERS_DB_COLLECTION)
 
-    suspend operator fun invoke(userId: String, token: String,onSuccess: suspend () -> Unit = {} ) {
+    suspend operator fun invoke(userId: String, token: String,onSuccess: () -> Unit = {} ) {
+        try {
+            fireStore.runTransaction { transaction ->
+                val userRef = usersCollection.document(userId)
+                val user = transaction[userRef].toObject<User>()
 
-        db.runTransaction { transaction ->
-            val userDocumentRef = usersDb.document(userId)
-            val user = transaction[userDocumentRef].toObject(User::class.java)
+                user?.let {
+                    val fcmTokens = user.fcmTokens
 
-            if(user != null) {
-                val tokens = user.fcmTokens
-
-                if(tokens.contains(token)) {
-                    isSuccess = true
-                    tokens.remove(token)
-                    transaction.update(userDocumentRef,"fcmTokens",tokens)
+                    if(fcmTokens.contains(token)) {
+                        fcmTokens.remove(token)
+                        transaction.update(userRef,"fcmTokens",fcmTokens)
+                    }
                 }
-            } else {
-                isSuccess = false
-                return@runTransaction
-            }
-        }.await()
+            }.await()
 
-        if(isSuccess) {
             onSuccess()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

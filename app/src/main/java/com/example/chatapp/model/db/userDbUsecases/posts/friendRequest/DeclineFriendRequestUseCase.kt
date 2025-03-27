@@ -65,7 +65,7 @@ class DeclineFriendRequestUseCase @Inject constructor(
             receiver.fcmTokens.forEach { token ->
                 sendRemoteNotificationUseCase(
                     sendNotificationDto = SendNotificationDto(
-                        token = token.key,
+                        token = token,
                         topic = null,
                         notificationBody = NotificationBody(
                             title = "Request Decline!",
@@ -76,7 +76,7 @@ class DeclineFriendRequestUseCase @Inject constructor(
                             receiverId = receiver.id,
                             type = "decline_friend_request"
                         )
-                    )
+                    ),
                 )
             }
         }
