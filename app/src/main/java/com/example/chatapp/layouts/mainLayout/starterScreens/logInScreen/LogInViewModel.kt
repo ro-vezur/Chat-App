@@ -2,7 +2,7 @@ package com.example.chatapp.layouts.mainLayout.starterScreens.logInScreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.ACCURATE_DATE_FORMAT
+import com.example.chatapp.DD_MM_YYYY_HH_MM
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.domain.auth.LogInUseCase
 import com.example.chatapp.helpers.time.getDateFromMillis
@@ -78,7 +78,7 @@ class LogInViewModel @Inject constructor(
                 _logInUiState.emit(
                     _logInUiState.value.copy(
                         passwordValidationResult = ValidationResult.Error(
-                            errorMessage = "Try Again After ${getDateFromMillis(userLoginState.blockedUntil, ACCURATE_DATE_FORMAT)}"
+                            errorMessage = "Try Again After ${getDateFromMillis(userLoginState.blockedUntil, DD_MM_YYYY_HH_MM)}"
                         )
                     )
                 )

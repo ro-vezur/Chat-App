@@ -1,6 +1,6 @@
 package com.example.chatapp.layouts.sharedComponents.validation.validators.password
 
-import com.example.chatapp.AWAIT_TIME_UNTIL_UNBLOCK
+import com.example.chatapp.AWAIT_MINUTES_UNTIL_UNBLOCK
 import com.example.chatapp.Dtos.user.LogInState
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.MAX_LOGIN_ATTEMPTS
@@ -42,7 +42,7 @@ class UpdateUserLogInStateUseCase @Inject constructor(
 
                         if (logInState.failedAttempts >= MAX_LOGIN_ATTEMPTS) {
                             logInState = logInState.copy(
-                                blockedUntil = getFutureTimeInMillis(AWAIT_TIME_UNTIL_UNBLOCK)
+                                blockedUntil = getFutureTimeInMillis(AWAIT_MINUTES_UNTIL_UNBLOCK)
                             )
                             transaction.update(userDocumentRef, "logInState", logInState)
                         } else {

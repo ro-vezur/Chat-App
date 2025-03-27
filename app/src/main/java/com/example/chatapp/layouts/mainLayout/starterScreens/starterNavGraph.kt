@@ -42,28 +42,6 @@ fun NavGraphBuilder.starterNavGraph(navController: NavController) {
 
             val signUpUiState by signUpViewModel.signUpUiState.collectAsStateWithLifecycle()
 
-            LaunchedEffect(signUpUiState.signUpResult) {
-                when(signUpUiState.signUpResult) {
-                    is Resource.Loading -> {
-
-                    }
-                    is Resource.Success -> {
-                        signUpViewModel.addUserToDb(
-                            user = signUpUiState.user.copy(
-                                id = signUpUiState.signUpResult.data?.user?.uid.toString(),
-                                isCustomProviderUsed = true
-                            ),
-                            onSuccess =  {
-                                navController.navigate(ScreenRoutes.LoggedScreens)
-                            }
-                        )
-                    }
-                    is Resource.Error -> {
-
-                    }
-                }
-            }
-
             SignUpScreen(
                 navController = navController,
                 signUpUiState = signUpUiState,

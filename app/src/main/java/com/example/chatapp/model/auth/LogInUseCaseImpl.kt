@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 class LogInUseCaseImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val updateCurrentUserTokenUseCase: AddFcmTokenUseCase,
+    private val addFcmTokenUseCase: AddFcmTokenUseCase,
 ): LogInUseCase {
     override operator fun invoke(user: User): Flow<Resource<AuthResult>> = flow {
         emit(Resource.Loading())
@@ -24,7 +24,7 @@ class LogInUseCaseImpl @Inject constructor(
         val result = firebaseAuth.signInWithEmailAndPassword(user.email,user.password).await()
         val newToken = Firebase.messaging.token.await()
 
-        updateCurrentUserTokenUseCase(newToken)
+        addFcmTokenUseCase(newToken)
 
         emit(Resource.Success(data = result))
     }.catch { e ->
