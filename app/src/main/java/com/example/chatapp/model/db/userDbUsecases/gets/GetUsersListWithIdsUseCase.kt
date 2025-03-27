@@ -11,9 +11,9 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class GetUsersListWithIdsUseCase @Inject constructor(
-    db: FirebaseFirestore
+    fireStore: FirebaseFirestore
 ) {
-    private val usersDb  = db.collection(USERS_DB_COLLECTION)
+    private val usersDb  = fireStore.collection(USERS_DB_COLLECTION)
 
     suspend operator fun invoke(ids: List<String>): Flow<Resource<List<User>>> = flow {
         emit(Resource.Loading())

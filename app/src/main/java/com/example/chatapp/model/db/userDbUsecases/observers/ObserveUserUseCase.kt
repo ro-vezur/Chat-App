@@ -1,6 +1,5 @@
 package com.example.chatapp.model.db.userDbUsecases.observers
 
-import android.util.Log
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
 import com.google.firebase.firestore.FirebaseFirestore
@@ -23,7 +22,6 @@ class ObserveUserUseCase @Inject constructor(
             val user = snapshot?.toObject(User::class.java)
 
             if(user != null) {
-                Log.d("user",user.toString())
                 trySend(user)
             }
         }

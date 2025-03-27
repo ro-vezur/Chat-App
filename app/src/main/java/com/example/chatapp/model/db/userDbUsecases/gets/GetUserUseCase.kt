@@ -6,8 +6,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class GetUserUseCase @Inject constructor(db: FirebaseFirestore) {
-    private val usersDb = db.collection(USERS_DB_COLLECTION)
+class GetUserUseCase @Inject constructor(fireStore: FirebaseFirestore) {
+    private val usersDb = fireStore.collection(USERS_DB_COLLECTION)
 
     suspend operator fun invoke(id: String): User? {
         return try {

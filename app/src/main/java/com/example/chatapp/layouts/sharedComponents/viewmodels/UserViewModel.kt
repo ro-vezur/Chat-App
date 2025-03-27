@@ -1,13 +1,13 @@
 package com.example.chatapp.layouts.sharedComponents.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
-import com.example.chatapp.helpers.time.getCurrentTimeInMillis
 import com.example.chatapp.model.datastore.permissionPreferences.PermissionsPreferencesRepository
-import com.example.chatapp.model.db.userDbUsecases.posts.SetLastTimeSeenUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.UpdateOnlineStatusUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.userOnlineStatus.AddUserDeviceUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.userOnlineStatus.DeleteUserDeviceUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -25,9 +25,9 @@ private var userStateListener: ListenerRegistration? = null
 class UserViewModel @Inject constructor(
     db: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val updateOnlineStatusUseCase: UpdateOnlineStatusUseCase,
-    private val setLastTimeSeenUseCase: SetLastTimeSeenUseCase,
     private val permissionsPreferencesRepository: PermissionsPreferencesRepository,
+    private val addUserDeviceUseCase: AddUserDeviceUseCase,
+    private val removeUserDeviceUseCase: DeleteUserDeviceUseCase,
 ): ViewModel() {
 
     private val usersDb = db.collection(USERS_DB_COLLECTION)
@@ -39,8 +39,10 @@ class UserViewModel @Inject constructor(
     val isAskedForNotificationPermission: StateFlow<Boolean> = _isAskedForNotificationPermission.asStateFlow()
 
     init {
-        fetchUser()
-        fetchIsAskedNotificationPermission()
+        viewModelScope.launch {
+            fetchUser()
+            fetchIsAskedNotificationPermission()
+        }
     }
 
     private fun fetchUser() = viewModelScope.launch {
@@ -49,27 +51,30 @@ class UserViewModel @Inject constructor(
                 userStateListener?.remove()
             }
 
-            userStateListener = usersDb.document(authState.currentUser?.uid.toString()).addSnapshotListener { document, error ->
-                if (error != null) return@addSnapshotListener
+            try {
 
-                document?.toObject(User::class.java)?.let { userObject ->
-                    _user.value = userObject
+                userStateListener = usersDb.document(authState.currentUser?.uid.toString()).addSnapshotListener { document, error ->
+                    if (error != null) return@addSnapshotListener
+
+                    document?.toObject(User::class.java)?.let { userObject ->
+                        _user.value = userObject
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e("Error fetching current user",e.message.toString())
             }
         }
     }
 
     fun updateOnlineStatus(status: Boolean) = viewModelScope.launch {
         if(status) {
-            updateOnlineStatusUseCase(true)
-            setLastTimeSeenUseCase(null)
+            addUserDeviceUseCase(_user.value.id)
         } else {
-            setLastTimeSeenUseCase(getCurrentTimeInMillis())
-            updateOnlineStatusUseCase(false)
+            removeUserDeviceUseCase(_user.value.id)
         }
     }
 
-    fun fetchIsAskedNotificationPermission() = viewModelScope.launch {
+    private fun fetchIsAskedNotificationPermission() = viewModelScope.launch {
         permissionsPreferencesRepository.askedForNotificationPermissionFlow.collectLatest { isAsked ->
             _isAskedForNotificationPermission.emit(isAsked)
         }
