@@ -1,5 +1,6 @@
 package com.example.chatapp.layouts.verticalLayout.loggedScreens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,11 +29,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.chatapp.Dtos.chat.ChatUI
+import com.example.chatapp.Dtos.chat.chatType.ChatType
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsUiState
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsViewModelEvent
 import com.example.chatapp.layouts.sharedComponents.images.UserImage
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
+import com.example.chatapp.navigation.ScreenRoutes
 import com.example.chatapp.others.Resource
 import com.example.chatapp.ui.theme.ChatAppTheme
 
@@ -62,7 +65,7 @@ fun VerticalChatsScreen(
                         verticalArrangement = Arrangement.spacedBy(10.sdp)
                     ) {
                         items(
-                            items = chats,
+                            items = chats.sortedByDescending { it.lastMessage.sentTimeStamp },
                             key = { chat -> chat.id }
                         ) { chat ->
                             ChatCard(
@@ -71,7 +74,13 @@ fun VerticalChatsScreen(
                                     .height(70.sdp)
                                     .clip(RoundedCornerShape(20))
                                     .clickable {
-
+                                        if (chat.chatType == ChatType.USER ) {
+                                            Log.d("chat id",chat.id)
+                                            Log.d("opposite user id",chat.userId.toString())
+                                            dispatchEvent(
+                                                ChatsViewModelEvent.NavigateTo("${ScreenRoutes.LoggedScreens.OneToOneChatRoute.MAIN_ROUTE_PART}/${chat.id}/${chat.userId}")
+                                            )
+                                        }
                                     },
                                 chatUI = chat
                             )
@@ -120,7 +129,7 @@ fun ChatCard(
             Spacer(modifier = Modifier.height(10.sdp))
 
             Text(
-                text = chatUI.lastMessage,
+                text = chatUI.lastMessage.content,
                 style = typography.bodyMedium,
                 color = colorScheme.onSecondary,
                 fontWeight = FontWeight.SemiBold

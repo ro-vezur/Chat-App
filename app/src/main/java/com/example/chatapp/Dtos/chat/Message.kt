@@ -8,9 +8,9 @@ data class Message(
     val userId: String = "",
     val chatId: String = "",
     val content: String = "",
-    val sentTimeStamp: Long = 0,
+    val sentTimeStamp: Long? = null,
     val seenBy: MutableList<String> = mutableListOf(),
     ) {
-    fun formatDate(): String = getDateFromMillis(this.sentTimeStamp,DD_MM_YYYY)
+    fun formatDate(): String = sentTimeStamp?.let { getDateFromMillis(this.sentTimeStamp,DD_MM_YYYY) } ?: ""
 
 }

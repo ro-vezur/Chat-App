@@ -1,10 +1,10 @@
 package com.example.chatapp.model.db.chatDb.usecases.gets
 
-import android.util.Log
 import com.example.chatapp.CHATS_DB_COLLECTION
 import com.example.chatapp.Dtos.chat.Chat
-import com.example.chatapp.Dtos.chat.ChatType
+import com.example.chatapp.Dtos.chat.chatType.ChatType
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class GetOneToOneChatUseCase @Inject constructor(
@@ -12,27 +12,22 @@ class GetOneToOneChatUseCase @Inject constructor(
 ) {
     private val chatsDb = db.collection(CHATS_DB_COLLECTION)
 
-    operator fun invoke(usersIds: List<String>,onResult: (Chat?) -> Unit) {
-         try {
-             chatsDb.whereEqualTo("chatType",ChatType.USER.name).get()
-                 .addOnSuccessListener { documents ->
-                     val matchingDocs = documents.documents.filter { document ->
-                         val usersFilterList = document.get("users") as? List<String> ?: emptyList()
-                         usersFilterList.sorted() == usersIds.sorted()
-                     }
+    suspend operator fun invoke(usersIds: List<String>): Chat? {
+        return try {
+            val querySnapshot = chatsDb.whereEqualTo("chatType", ChatType.USER.name).get().await()
 
-                     if(matchingDocs.isNotEmpty()) {
-                         val chat = matchingDocs.first().toObject(Chat::class.java)
-                         onResult(chat)
-                     } else {
-                         onResult(null)
-                     }
-                 }
-                 .addOnFailureListener { e ->
-                     Log.e("error",e.message.toString())
-                 }
+            val matchingDocs = querySnapshot.documents.filter { document ->
+                val usersFilterList = document.get("users") as? List<String> ?: emptyList()
+                usersFilterList.sorted() == usersIds.sorted()
+            }
+
+            when {
+                matchingDocs.isEmpty() -> null
+                else -> matchingDocs.first().toObject(Chat::class.java)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
+            null
         }
     }
 }

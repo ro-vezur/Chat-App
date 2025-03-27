@@ -8,4 +8,5 @@ data class OneToOneChatUiState(
     val chat: Chat = Chat(),
     val user: User = User(),
     val sendMessageQuery: String = "",
+    val isThereNewMessages: Boolean = false
 )

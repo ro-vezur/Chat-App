@@ -2,6 +2,7 @@ package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToO
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import androidx.paging.map
@@ -11,6 +12,9 @@ import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.model.db.chatDb.ChatPagingRepository
 import com.example.chatapp.model.db.chatDb.observers.ObserveChatUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.AddMessageUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.posts.SetMessagesReadStatusUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.posts.UpdateUserLastSeenMessageIdUseCase
+import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddLocalChatInfoUseCase
 import dagger.assisted.Assisted
@@ -34,6 +38,9 @@ class OneToOneChatViewModel @AssistedInject constructor(
     private val addMessageUseCase: AddMessageUseCase,
     private val addLocalChatInfoUseCase: AddLocalChatInfoUseCase,
     private val chatPagingRepository: ChatPagingRepository,
+    private val setMessagesReadStatusUseCase: SetMessagesReadStatusUseCase,
+    private val updateUserLastSeenMessageIdUseCase: UpdateUserLastSeenMessageIdUseCase,
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
 ): ViewModel() {
 
     @AssistedFactory
@@ -44,29 +51,19 @@ class OneToOneChatViewModel @AssistedInject constructor(
         ): OneToOneChatViewModel
     }
 
+    private val messagesReadList: MutableList<Message> = mutableListOf()
+
     private val _chatUiState: MutableStateFlow<OneToOneChatUiState> = MutableStateFlow(
         OneToOneChatUiState()
     )
     val chatUiState: StateFlow<OneToOneChatUiState> = _chatUiState.asStateFlow()
 
-    val paginatedMessages = chatPagingRepository.getPaginatedMessages(chatId)
-        .map { pagingData ->
-            pagingData
-                .map { message -> ChatItem.MessageItem(message) }
-                .insertSeparators { before: ChatItem.MessageItem?, after: ChatItem.MessageItem? ->
-                    when {
-                        before == null -> ChatItem.DateHeader("HEADER")
-                        after == null -> before.message.formatDate()
-                        before.message.formatDate() != after.message.formatDate() -> ChatItem.DateHeader(after.message.formatDate())
-                        else -> null
-
-                    }
-                }
-        }
-        .cachedIn(viewModelScope)
+    private val _paginatedMessages = MutableStateFlow<PagingData<ChatItem>>(PagingData.empty())
+    val paginatedMessages: StateFlow<PagingData<ChatItem>> = _paginatedMessages.asStateFlow()
 
     init {
         viewModelScope.launch {
+            setPagingData()
             observeUser()
             observeChat()
             chatPagingRepository.messagesListener(chatId)
@@ -88,14 +85,69 @@ class OneToOneChatViewModel @AssistedInject constructor(
         }
     }
 
+    private fun setPagingData() = viewModelScope.launch {
+        chatPagingRepository.getPaginatedMessages(chatId)
+            .map { pagingData ->
+                pagingData
+                    .map { message -> ChatItem.MessageItem(message) }
+                    .insertSeparators { before: ChatItem.MessageItem?, after: ChatItem.MessageItem? ->
+                        when {
+                            before == null -> null
+                            after == null -> ChatItem.DateHeader(before.message.formatDate())
+                            before.message.formatDate() != after.message.formatDate() -> ChatItem.DateHeader(before.message.formatDate())
+                            after.message.seenBy.contains(getCurrentUserIdUseCase())
+                                    && !before.message.seenBy.contains(getCurrentUserIdUseCase())
+                                    && before.message.userId != getCurrentUserIdUseCase() -> ChatItem.NewMessagesSeparator()
+                            !before.message.seenBy.contains(getCurrentUserIdUseCase())
+                                    && before.message.userId != getCurrentUserIdUseCase()
+                                    && after.message.userId == getCurrentUserIdUseCase() -> ChatItem.NewMessagesSeparator()
+                            else -> null
+
+                        }
+                    }
+            }
+            .cachedIn(viewModelScope)
+            .collect {
+                _paginatedMessages.emit(it)
+            }
+    }
+
     fun dispatchEvent(event: OneToOneChatViewModelEvent) = viewModelScope.launch {
         when(event) {
             is OneToOneChatViewModelEvent.SendMessage -> sendMessage(event.message)
             is OneToOneChatViewModelEvent.OnEnterQueryChange -> onEnterQueryChange(event.query)
             is OneToOneChatViewModelEvent.AddLocalChatInfo -> addLocalChatInfo(event.userId,event.localChatInfo)
+            is OneToOneChatViewModelEvent.AddMessageToReadList -> addMessageReadList(event.message,event.userId)
+            OneToOneChatViewModelEvent.ClearMessagesReadList -> clearMessagesReadList()
+            is OneToOneChatViewModelEvent.SetMessagesReadStatus -> setMessagesReadStatus(event.userId)
+            is OneToOneChatViewModelEvent.UpdateUserLastSeenMessage -> updateUserLastSeenMessage(event.userId,event.messageId)
         }
     }
 
+    private fun updateUserLastSeenMessage(userId: String,messageId: String) = viewModelScope.launch {
+        updateUserLastSeenMessageIdUseCase(userId,chatId,messageId)
+    }
+
+    private fun setMessagesReadStatus(userId: String) = viewModelScope.launch {
+        if(messagesReadList.isNotEmpty()) {
+            updateUserLastSeenMessageIdUseCase(userId,chatId,messagesReadList.first().id)
+
+            setMessagesReadStatusUseCase(
+                messagesReadList,chatId,userId, onSuccess = { clearMessagesReadList() }
+            )
+        }
+    }
+
+    private fun clearMessagesReadList() = viewModelScope.launch {
+        messagesReadList.clear()
+    }
+    private fun addMessageReadList(message: Message,userId: String) = viewModelScope.launch {
+        if(!message.seenBy.contains(userId) && !messagesReadList.map { it.id }.contains(message.id)) {
+            val seenBy = message.seenBy
+            seenBy.add(userId)
+            messagesReadList.add(message.copy(seenBy = seenBy))
+        }
+    }
     private fun addLocalChatInfo(userId: String,localChatInfo: LocalChatInfo) = viewModelScope.launch {
         addLocalChatInfoUseCase(userId, localChatInfo)
     }

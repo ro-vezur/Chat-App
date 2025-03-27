@@ -3,17 +3,17 @@ package com.example.chatapp.model.db.chatDb.usecases.posts
 import com.example.chatapp.CHATS_DB_COLLECTION
 import com.example.chatapp.Dtos.chat.Chat
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class AddChatUseCase @Inject constructor(
-    private val db: FirebaseFirestore
+    private val fireStore: FirebaseFirestore,
 ) {
-    private val chatsDb = db.collection(CHATS_DB_COLLECTION)
-    operator fun invoke(chat: Chat,onSuccess: () -> Unit) {
+    private val chatsCollection = fireStore.collection(CHATS_DB_COLLECTION)
+    suspend operator fun invoke(chat: Chat,onSuccess: () -> Unit) {
         try {
-            chatsDb.document(chat.id).set(chat).addOnSuccessListener {
-                onSuccess()
-            }
+            chatsCollection.document(chat.id).set(chat).await()
+            onSuccess()
         } catch (e: Exception) {
             e.printStackTrace()
         }
