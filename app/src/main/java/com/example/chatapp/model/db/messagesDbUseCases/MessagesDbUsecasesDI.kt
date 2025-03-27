@@ -1,8 +1,11 @@
 package com.example.chatapp.model.db.messagesDbUseCases
 
-import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastChatMessageUseCase
-import com.example.chatapp.model.db.messagesDbUseCases.gets.GetPaginatedChatMessagesUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastReadMessageIdUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.AddMessageUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.posts.SetMessagesReadStatusUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.posts.UpdateUserLastSeenMessageIdUseCase
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
@@ -16,13 +19,27 @@ object MessagesDbUsecasesDI {
 
     @Provides
     @Singleton
-    fun provideGetLastChatMessage(db: FirebaseFirestore) = GetLastChatMessageUseCase(db)
+    fun provideUpdateUserLastSeenMessageIdUseCase(
+        fireStore: FirebaseFirestore
+    ) = UpdateUserLastSeenMessageIdUseCase(fireStore)
 
     @Provides
     @Singleton
-    fun provideGetPaginatedChatMessagesUseCase(db: FirebaseFirestore) = GetPaginatedChatMessagesUseCase(db)
+    fun provideGetLastReadMessageIdUseCase(
+        fireStore: FirebaseFirestore
+    ): GetLastReadMessageIdUseCase = GetLastReadMessageIdUseCase(fireStore)
 
     @Provides
     @Singleton
-    fun provideAddMessageUseCase(db: FirebaseFirestore) = AddMessageUseCase(db)
+    fun provideSetMessagesReadStatusUseCase(
+        db: DatabaseReference,
+    ): SetMessagesReadStatusUseCase = SetMessagesReadStatusUseCase(db)
+
+    @Provides
+    @Singleton
+    fun provideGetMessageUseCase(db: DatabaseReference) = GetChatMessageUseCase(db)
+
+    @Provides
+    @Singleton
+    fun provideAddMessageUseCase(fireStore: FirebaseFirestore,dbReference: DatabaseReference) = AddMessageUseCase(fireStore,dbReference)
 }

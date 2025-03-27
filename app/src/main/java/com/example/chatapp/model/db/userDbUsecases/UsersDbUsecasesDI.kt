@@ -1,5 +1,6 @@
 package com.example.chatapp.model.db.userDbUsecases
 
+import android.content.Context
 import com.example.chatapp.USERS_DB_COLLECTION
 import com.example.chatapp.model.db.userDbUsecases.gets.FindUsersByNameUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
@@ -8,20 +9,22 @@ import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCa
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.DeleteFriendUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.SetLastTimeSeenUseCase
-import com.example.chatapp.model.db.userDbUsecases.posts.UpdateOnlineStatusUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.AddFcmTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.AcceptFriendRequestUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.DeclineFriendRequestUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.SendFriendRequestUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.userOnlineStatus.AddUserDeviceUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.userOnlineStatus.DeleteUserDeviceUseCase
 import com.example.chatapp.model.services.messanging.SendRemoteNotificationUseCase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -31,38 +34,35 @@ object UsersDbUsecasesDI {
 
     @Provides
     @Singleton
-    fun provideSetLastTimeSeenUseCase(
-        db: FirebaseFirestore,
-        getCurrentUserIdUseCase: GetCurrentUserIdUseCase
-    ): SetLastTimeSeenUseCase {
-        return SetLastTimeSeenUseCase(db,getCurrentUserIdUseCase)
-    }
+    fun provideDeleteUserDeviceUseCase(
+        @ApplicationContext context: Context,
+        fireStore: FirebaseFirestore,
+    ): DeleteUserDeviceUseCase = DeleteUserDeviceUseCase(context,fireStore)
 
     @Provides
     @Singleton
-    fun provideUpdateOnlineStatuesUseCase(
-        db: FirebaseFirestore,
-        getCurrentUserIdUseCase: GetCurrentUserIdUseCase
-    ): UpdateOnlineStatusUseCase {
-        return UpdateOnlineStatusUseCase(db,getCurrentUserIdUseCase)
-    }
+    fun provideAddUserDeviceUseCase(
+        @ApplicationContext context: Context,
+        fireStore: FirebaseFirestore,
+        getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+    ): AddUserDeviceUseCase = AddUserDeviceUseCase(context,fireStore,getCurrentUserIdUseCase)
 
     @Provides
     @Singleton
-    fun provideObserveUserUseCase(db: FirebaseFirestore): ObserveUserUseCase {
-        return ObserveUserUseCase(db)
+    fun provideObserveUserUseCase(fireStore: FirebaseFirestore): ObserveUserUseCase {
+        return ObserveUserUseCase(fireStore)
     }
 
     @Provides
     @Singleton
     fun provideDeleteFriendUseCase(
-        db: FirebaseFirestore,
+        fireStore: FirebaseFirestore,
         getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
         sendRemoteNotificationUseCase: SendRemoteNotificationUseCase,
         getUserUseCase: GetUserUseCase
     ): DeleteFriendUseCase {
         return DeleteFriendUseCase(
-            db = db,
+            db = fireStore,
             getCurrentUserIdUseCase = getCurrentUserIdUseCase,
             sendRemoteNotificationUseCase = sendRemoteNotificationUseCase,
             getUserUseCase = getUserUseCase,
@@ -72,13 +72,13 @@ object UsersDbUsecasesDI {
     @Provides
     @Singleton
     fun provideDeclineFriendRequestUseCase(
-        db: FirebaseFirestore,
+        fireStore: FirebaseFirestore,
         getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
         sendRemoteNotificationUseCase: SendRemoteNotificationUseCase,
         getUserUseCase: GetUserUseCase
     ): DeclineFriendRequestUseCase {
         return DeclineFriendRequestUseCase(
-            db = db,
+            db = fireStore,
             getCurrentUserIdUseCase = getCurrentUserIdUseCase,
             sendRemoteNotificationUseCase = sendRemoteNotificationUseCase,
             getUserUseCase = getUserUseCase
@@ -88,65 +88,69 @@ object UsersDbUsecasesDI {
     @Provides
     @Singleton
     fun provideAcceptFriendRequestUseCase(
-        db: FirebaseFirestore,
+        fireStore: FirebaseFirestore,
         sendRemoteNotificationUseCase: SendRemoteNotificationUseCase,
         getUserUseCase: GetUserUseCase
     ): AcceptFriendRequestUseCase {
-        return AcceptFriendRequestUseCase(db,sendRemoteNotificationUseCase,getUserUseCase)
+        return AcceptFriendRequestUseCase(fireStore,sendRemoteNotificationUseCase,getUserUseCase)
     }
 
     @Provides
     @Singleton
     fun provideRemoveLastUserTokenUseCase(
-        db: FirebaseFirestore,
-    ): RemoveFcmTokenUseCase = RemoveFcmTokenUseCase(db)
+        fireStore: FirebaseFirestore,
+    ): RemoveFcmTokenUseCase = RemoveFcmTokenUseCase(fireStore)
 
     @Provides
     @Singleton
     fun provideUpdateCurrentUserTokenUseCase(
         getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
-        db: FirebaseFirestore,
+        fireStore: FirebaseFirestore,
     ): AddFcmTokenUseCase {
-        return AddFcmTokenUseCase(getCurrentUserIdUseCase, db,)
+        return AddFcmTokenUseCase(getCurrentUserIdUseCase, fireStore)
     }
 
     @Provides
     @Singleton
-    fun provideCurrentUserUseCase(db: FirebaseFirestore): CollectionReference {
-        return db.collection(USERS_DB_COLLECTION)
+    fun provideCurrentUserUseCase(fireStore: FirebaseFirestore): CollectionReference {
+        return fireStore.collection(USERS_DB_COLLECTION)
     }
 
     @Provides
     @Singleton
-    fun provideAddUserUseCase(db: FirebaseFirestore): AddUserUseCase {
-        return AddUserUseCase(db = db)
+    fun provideAddUserUseCase(
+        @ApplicationContext context: Context,
+        fireStore: FirebaseFirestore,
+        db: DatabaseReference
+    ): AddUserUseCase {
+        return AddUserUseCase(context,fireStore,db)
     }
 
     @Provides
     @Singleton
-    fun provideGetUserUseCase(db: FirebaseFirestore): GetUserUseCase {
-        return GetUserUseCase(db = db)
+    fun provideGetUserUseCase(fireStore: FirebaseFirestore): GetUserUseCase {
+        return GetUserUseCase(fireStore)
     }
 
     @Provides
     @Singleton
-    fun provideFindUsersByNameUseCase(db: FirebaseFirestore, getCurrentUserIdUseCase: GetCurrentUserIdUseCase): FindUsersByNameUseCase {
-        return FindUsersByNameUseCase(db, getCurrentUserIdUseCase)
+    fun provideFindUsersByNameUseCase(fireStore: FirebaseFirestore, getCurrentUserIdUseCase: GetCurrentUserIdUseCase): FindUsersByNameUseCase {
+        return FindUsersByNameUseCase(fireStore, getCurrentUserIdUseCase)
     }
 
     @Provides
     @Singleton
-    fun provideGetUsersListWithIdsUseCase(db: FirebaseFirestore): GetUsersListWithIdsUseCase {
-        return GetUsersListWithIdsUseCase(db = db)
+    fun provideGetUsersListWithIdsUseCase(fireStore: FirebaseFirestore): GetUsersListWithIdsUseCase {
+        return GetUsersListWithIdsUseCase(fireStore)
     }
 
     @Provides
     @Singleton
     fun provideSendFriendRequestUseCase(
-        db: FirebaseFirestore,
+        fireStore: FirebaseFirestore,
         sendRemoteNotificationUseCase: SendRemoteNotificationUseCase
     ): SendFriendRequestUseCase {
-        return SendFriendRequestUseCase(db = db,sendRemoteNotificationUseCase)
+        return SendFriendRequestUseCase(fireStore,sendRemoteNotificationUseCase)
     }
 
     @Provides
