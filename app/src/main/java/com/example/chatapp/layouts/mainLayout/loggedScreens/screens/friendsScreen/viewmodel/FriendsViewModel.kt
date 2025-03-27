@@ -3,7 +3,7 @@ package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScre
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.Dtos.chat.Chat
-import com.example.chatapp.Dtos.chat.ChatType
+import com.example.chatapp.Dtos.chat.chatType.ChatType
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.helpers.time.getCurrentTimeInMillis
 import com.example.chatapp.model.db.chatDb.usecases.gets.GetOneToOneChatUseCase
@@ -114,30 +114,26 @@ class FriendsViewModel @Inject constructor(
 
     private fun addChat(usersIds: List<String>) = viewModelScope.launch {
 
-        getOneToOneChatUseCase(
-            usersIds = usersIds,
-            onResult = { chat ->
-                if(chat == null) {
-                    val newChatId = UUID.randomUUID()
-                    val newChat = Chat(
-                        id = newChatId.toString(),
-                        createdTimeStamp = getCurrentTimeInMillis(),
-                        chatType = ChatType.USER,
-                        users = usersIds.toMutableList()
-                    )
+        val chat = getOneToOneChatUseCase(usersIds = usersIds)
 
-                    addChatUseCase(
-                        chat = newChat,
-                        onSuccess = {
-                            onNavigate("${ScreenRoutes.LoggedScreens.OneToOneChatRoute.MAIN_ROUTE_PART}/$newChatId/${usersIds[1]}")
-                        }
-                    )
+        if(chat == null) {
+            val newChatId = UUID.randomUUID()
+            val newChat = Chat(
+                id = newChatId.toString(),
+                createdTimeStamp = getCurrentTimeInMillis(),
+                chatType = ChatType.USER,
+                users = usersIds.toMutableList()
+            )
 
-                } else {
-                    onNavigate("${ScreenRoutes.LoggedScreens.OneToOneChatRoute.MAIN_ROUTE_PART}/${chat.id}/${usersIds[1]}")
+            addChatUseCase(
+                chat = newChat,
+                onSuccess = {
+                    onNavigate("${ScreenRoutes.LoggedScreens.OneToOneChatRoute.MAIN_ROUTE_PART}/$newChatId/${usersIds[1]}")
                 }
-            }
-        )
+            )
+        } else {
+            onNavigate("${ScreenRoutes.LoggedScreens.OneToOneChatRoute.MAIN_ROUTE_PART}/${chat.id}/${usersIds[1]}")
+        }
 
     }
 }

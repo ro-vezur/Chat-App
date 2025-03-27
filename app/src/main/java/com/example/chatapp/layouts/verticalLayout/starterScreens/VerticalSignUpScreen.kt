@@ -149,10 +149,10 @@ fun VerticalSignUpScreen(
             onClick = {
                 if(isSuccess) {
                     val user = User(
-                        id = "",
                         name = name,
                         email = email,
                         password = password,
+                        isCustomProviderUsed = true
                     )
 
                     signUp(user)

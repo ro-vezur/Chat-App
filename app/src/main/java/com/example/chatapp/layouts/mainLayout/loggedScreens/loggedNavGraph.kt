@@ -39,6 +39,14 @@ fun NavGraphBuilder.loggedNavGraph(
             val chatsViewModel: ChatsViewModel = hiltViewModel()
             val chatsUiState by chatsViewModel.chatsUiState.collectAsStateWithLifecycle()
 
+            LaunchedEffect(Unit) {
+                chatsViewModel.navigationEvents.collectLatest { route ->
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                    }
+                }
+            }
+
             ChatsScreen(
                 chatsUiState = chatsUiState,
                 dispatchEvent = chatsViewModel::dispatchEvent
@@ -110,8 +118,6 @@ fun NavGraphBuilder.loggedNavGraph(
                     dispatchEvent = chatViewModel::dispatchEvent
                 )
             }
-
-
         }
 
         composable<ScreenRoutes.LoggedScreens.SettingsRoute> {

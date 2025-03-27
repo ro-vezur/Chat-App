@@ -77,7 +77,8 @@ class MainActivity : ComponentActivity() {
                 isLogged = it.currentUser != null
 
                 if(isLogged) {
-                    sharedUserViewModel.updateOnlineStatus(true)
+
+          //          sharedUserViewModel.updateOnlineStatus(true)
                     if(!isAskedForNotificationPermission && !notificationPermission.status.isGranted) {
                         notificationPermission.launchPermissionRequest()
                         sharedUserViewModel.saveIsAskedNotificationPermission(true)
