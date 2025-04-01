@@ -14,49 +14,48 @@ class MessagesPagingSource (
     private val pageSize: Int,
     private val lastReadTimeStamp: Long?,
     private val firstTimestampKey: MutableState<Long?>,
-    private val lastTimestampKey: MutableState<Long?>,
-) : PagingSource<Int, Message>() {
+    private val anchorPosition: MutableState<Long?>,
+) : PagingSource<Long, Message>() {
 
-    override fun getRefreshKey(state: PagingState<Int, Message>): Int? {
-        return state.anchorPosition
+    override fun getRefreshKey(state: PagingState<Long, Message>): Long? {
+        return state.anchorPosition?.let { anchor ->
+            anchorPosition.value = state.closestItemToPosition(anchor)?.sentTimeStamp
+            state.closestItemToPosition(anchor)?.sentTimeStamp
+        }
     }
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Message> {
+    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, Message> {
         return try {
 
-            val page = params.key ?: 1
-
-      //      Log.d("page",page.toString())
+            val key = params.key
 
             val queryToExecute = when(params) {
                 is LoadParams.Refresh -> {
                     when {
-                        lastReadTimeStamp == null -> {
-                            Log.d("last msgs fetch","!!!")
+                        key != null -> {
+                            Log.d("fetch with key",key.toString())
                             query.limitToLast(pageSize)
                         }
-                        firstTimestampKey.value == null && lastTimestampKey.value == null -> {
-                            Log.d("first last read msg fetch",lastReadTimeStamp.toString())
-                            query
-                                .endAt(lastReadTimeStamp.toDouble())
-                                .limitToLast(pageSize)
+                        lastReadTimeStamp != null -> {
+                            Log.d("last read fetch","!!!")
+                            query.endAt(lastReadTimeStamp.toDouble()).limitToLast(pageSize)
                         }
                         else -> {
-                            Log.d("else",lastReadTimeStamp.toString())
+                            Log.d("else","!!!")
                             query.limitToLast(pageSize)
                         }
                     }
                 }
                 is LoadParams.Prepend -> {
-                    Log.d("firstTimestampKey",firstTimestampKey.toString())
+                 //   Log.d("PREPEND",firstTimestampKey.toString())
                     query
-                        .startAfter(firstTimestampKey.value?.toDouble() ?: Double.MAX_VALUE)
+                        .startAfter(key?.toDouble() ?: Double.MAX_VALUE)
                         .limitToLast(pageSize)
                 }
                 is LoadParams.Append -> {
-                    Log.d("lastTimestampKey",lastTimestampKey.toString())
+                //    Log.d("APPEND",lastTimestampKey.toString())
                     query
-                        .endBefore(lastTimestampKey.value?.toDouble() ?: 0.0)
+                        .endBefore(key?.toDouble() ?: 0.0)
                         .limitToLast(pageSize)
                 }
             }
@@ -65,31 +64,16 @@ class MessagesPagingSource (
             val messages = seenSnapshot.children.mapNotNull { it.getValue(Message::class.java) }
                 .sortedByDescending { it.sentTimeStamp }
 
-        //    Log.d("messages is empty?",messages.isEmpty().toString())
-
             if(messages.isNotEmpty()) {
-                /*
-                when {
-                    firstTimestampKey.value == null && lastTimestampKey.value == null -> {
-                        firstTimestampKey.value = messages.last().sentTimeStamp
-                        lastTimestampKey.value = messages.first().sentTimeStamp
-                        Log.d("last timestamp key",messages.last().content)
-                        Log.d("first timestamp key", messages.first().content)
-                    }
-                    params is LoadParams.Append -> lastTimestampKey.value = messages.first().sentTimeStamp
-                    params is LoadParams.Prepend -> firstTimestampKey.value = messages.last().sentTimeStamp
-                }
-                 */
-                firstTimestampKey.value = messages.first().sentTimeStamp
-                lastTimestampKey.value = messages.last().sentTimeStamp
-
-                Log.d("messages content",messages.map { it.content }.toString())
+                firstTimestampKey.value = 0
+            //    Log.d("messages content",messages.map { it.content }.toString())
             }
+
 
             LoadResult.Page(
                 data = messages,
-                prevKey = if(messages.isEmpty()) null else page - 1,
-                nextKey = if(messages.isEmpty()) null else page + 1
+                prevKey = if(messages.isEmpty()) null else messages.first().sentTimeStamp,
+                nextKey = if(messages.isEmpty()) null else messages.last().sentTimeStamp
             )
         } catch (e: Exception) {
             LoadResult.Error(e)
