@@ -2,6 +2,7 @@ package com.example.chatapp.model.db.messagesDbUseCases
 
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastReadMessageIdUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.gets.GetUnseenMessagesCountUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.AddMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.SetMessagesReadStatusUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.UpdateUserLastSeenMessageIdUseCase
@@ -16,6 +17,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object MessagesDbUsecasesDI {
+
+    @Provides
+    @Singleton
+    fun provideGetUnseenMessagesCountUseCase(
+        db: DatabaseReference
+    ) = GetUnseenMessagesCountUseCase(db)
 
     @Provides
     @Singleton

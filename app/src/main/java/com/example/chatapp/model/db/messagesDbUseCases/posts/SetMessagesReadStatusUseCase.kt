@@ -1,8 +1,10 @@
 package com.example.chatapp.model.db.messagesDbUseCases.posts
 
 import android.util.Log
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.MESSAGES_DB
+import com.example.chatapp.helpers.time.getCurrentTimeInMillis
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -16,13 +18,13 @@ class SetMessagesReadStatusUseCase @Inject constructor(
     operator fun invoke(messagesReadList: List<Message>, chatId: String,userId: String,onSuccess: () -> Unit) {
         try {
             messagesReadList.forEach { message ->
-                val messageRef = db.child(MESSAGES_DB).child(chatId).child(message.id)
+                val messageRef = db.child(CHATS_DB).child(chatId).child(MESSAGES_DB).child(message.id)
                 messageRef.runTransaction(
                     object : Transaction.Handler {
                         override fun doTransaction(currentData: MutableData): Transaction.Result {
                             val seenBy = message.seenBy
                             if(!seenBy.contains(userId)) {
-                                seenBy.add(userId)
+                                seenBy[userId] = getCurrentTimeInMillis()
                             }
                             currentData.value = message
 

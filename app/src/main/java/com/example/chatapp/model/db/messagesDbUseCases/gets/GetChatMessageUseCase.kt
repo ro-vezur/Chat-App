@@ -1,5 +1,6 @@
 package com.example.chatapp.model.db.messagesDbUseCases.gets
 
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.MESSAGES_DB
 import com.google.firebase.database.DatabaseReference
@@ -11,7 +12,7 @@ class GetChatMessageUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(chatId: String,id: String): Message {
         return try {
-            val dataSnapshot = db.child(MESSAGES_DB).child(chatId).get().await()
+            val dataSnapshot = db.child(CHATS_DB).child(chatId).child(MESSAGES_DB).get().await()
             val message = dataSnapshot.child(id).getValue(Message::class.java)
 
             return message ?: Message()
