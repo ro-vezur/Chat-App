@@ -10,5 +10,7 @@ sealed class OneToOneChatViewModelEvent {
     class AddMessageToReadList(val message: Message, val userId: String): OneToOneChatViewModelEvent()
     data object ClearMessagesReadList: OneToOneChatViewModelEvent()
     class SetMessagesReadStatus(val userId: String): OneToOneChatViewModelEvent()
-    class UpdateUserLastSeenMessage(val userId: String, val messageId: String): OneToOneChatViewModelEvent()
+    class SetUnseenMessagesCount(val userId: String): OneToOneChatViewModelEvent()
+    class AddUserTyping(val chatId: String,val userId: String): OneToOneChatViewModelEvent()
+    class RemoveUserTyping(val chatId: String,val userId: String): OneToOneChatViewModelEvent()
 }

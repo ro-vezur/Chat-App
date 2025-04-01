@@ -1,6 +1,7 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,6 +63,7 @@ import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.HH_MM
 import com.example.chatapp.LocalUser
 import com.example.chatapp.differentScreensSupport.sdp
+import com.example.chatapp.helpers.navigation.navigateBack
 import com.example.chatapp.helpers.time.formatLastOnlineTime
 import com.example.chatapp.helpers.time.getDateFromMillis
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatUiState
@@ -77,17 +79,22 @@ import com.example.chatapp.layouts.sharedComponents.images.UserImage
 import com.example.chatapp.others.states.DirectionalLazyListState.ScrollDirection
 import com.example.chatapp.others.states.DirectionalLazyListState.rememberDirectionalLazyListState
 import com.example.chatapp.ui.theme.ChatAppTheme
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
+@OptIn(FlowPreview::class)
 @Composable
 fun OneToOneChatScreen(
     chatUiState: OneToOneChatUiState,
     paginatedMessages: LazyPagingItems<ChatItem>,
     navController: NavController,
-    dispatchEvent: (OneToOneChatViewModelEvent) -> Unit,
+    dispatchEvent: (OneToOneChatViewModelEvent) -> Job,
 ) {
     val mainUser = LocalUser.current
 
@@ -99,88 +106,35 @@ fun OneToOneChatScreen(
         derivedStateOf { lazyListState.firstVisibleItemIndex }
     }
     val visibleItemsInfo by remember {
-        derivedStateOf { lazyListState.firstVisibleItemIndex }
+        derivedStateOf { lazyListState.layoutInfo.visibleItemsInfo }
     }
 
     var isFirstScrollDownLaunchedEffectCall by rememberSaveable {
         mutableStateOf(true)
     }
+    var isFirstCheckLastMessagesLaunchedEffectCall by rememberSaveable {
+        mutableStateOf(true)
+    }
+    var isCheckingLastMessages by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     var visibleDateHeader by remember { mutableStateOf<String?>(null) }
     var visibleScrollDownButton by remember { mutableStateOf(false) }
+    var isOppositeUserTyping by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = visibleItemsInfo, key2 = chatUiState.chat.lastMessageId) {
-        if(paginatedMessages.itemCount != 0 && lazyListState.layoutInfo.visibleItemsInfo.isNotEmpty()) {
-            val firstVisibleItem = paginatedMessages[lazyListState.layoutInfo.visibleItemsInfo.first().index]
-
-            lazyListState.layoutInfo.visibleItemsInfo.forEach { item ->
-                val chatItem = paginatedMessages[item.index]
-
-                chatItem?.let {
-                    if(chatItem is ChatItem.MessageItem && chatItem.message.userId != mainUser.id) {
-                        dispatchEvent(OneToOneChatViewModelEvent.AddMessageToReadList(chatItem.message,mainUser.id))
-                    }
-                }
-            }
-
-            firstVisibleItem?.let { chatItem ->
-                if(chatItem is ChatItem.MessageItem) {
-
-                    if(chatItem.message.id == chatUiState.chat.lastMessageId) {
-                        dispatchEvent(OneToOneChatViewModelEvent.UpdateUserLastSeenMessage(mainUser.id,chatItem.message.id))
-                    }
-                }
-            }
-
-            dispatchEvent(OneToOneChatViewModelEvent.SetMessagesReadStatus(mainUser.id))
-        }
+    BackHandler {
+        dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,mainUser.id))
     }
 
-    LaunchedEffect(key1 = paginatedMessages.itemCount,key2 = lastItemIndex) {
-        if(isFirstScrollDownLaunchedEffectCall) {
-            isFirstScrollDownLaunchedEffectCall = false
-            return@LaunchedEffect
-        }
-
-        if(paginatedMessages.itemCount != 0 && lastItemIndex <= 2) {
-            val firstVisibleItem = paginatedMessages[0]
-
-            Log.d("last item index",lastItemIndex.toString())
-            lazyListState.scrollToItem(0)
-
-            firstVisibleItem?.let { chatItem ->
-                if(chatItem is ChatItem.MessageItem) {
-
-                    if(chatItem.message.id == chatUiState.chat.lastMessageId) {
-                        dispatchEvent(OneToOneChatViewModelEvent.UpdateUserLastSeenMessage(mainUser.id,chatUiState.chat.lastMessageId))
-                    //    dispatchEvent(OneToOneChatViewModelEvent.AddMessageToReadList(chatItem.message,mainUser.id))
-                    }
-                }
-            }
-        }
-    }
-
-
-    LaunchedEffect(key1 = directionalLazyListState.scrollDirection,key2 = lazyListState.canScrollBackward) {
-
-        visibleScrollDownButton = when {
-            !lazyListState.canScrollBackward -> false
-            directionalLazyListState.scrollDirection == ScrollDirection.NONE -> return@LaunchedEffect
-            else -> {
-                delay(100)
-                Log.d("scroll orientation",directionalLazyListState.scrollDirection.name)
-                directionalLazyListState.scrollDirection == ScrollDirection.UP
-            }
-        }
-    }
-
-    LaunchedEffect(key1 = lazyListState.isScrollInProgress) {
-        if(!lazyListState.isScrollInProgress) {
-            dispatchEvent(OneToOneChatViewModelEvent.SetMessagesReadStatus(mainUser.id))
+    LaunchedEffect(key1 = chatUiState.user.onlineStatus.devices) {
+        if(chatUiState.user.onlineStatus.devices.isEmpty()) {
+            dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,chatUiState.user.id))
         }
     }
 
     LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo }
+        snapshotFlow { visibleItemsInfo }
             .mapNotNull { visibleItems ->
                 visibleItems.lastOrNull()?.let { lastItem ->
                     if(lastItem.index < paginatedMessages.itemCount) {
@@ -203,6 +157,100 @@ fun OneToOneChatScreen(
             .collect { newDate -> visibleDateHeader = newDate }
     }
 
+    LaunchedEffect(key1 = directionalLazyListState.scrollDirection,key2 = chatUiState.unseenMessagesCount,key3 = lastItemIndex) {
+
+        delay(100)
+
+        visibleScrollDownButton = when {
+            lastItemIndex == 0 -> false
+            chatUiState.unseenMessagesCount != 0 -> true
+            directionalLazyListState.scrollDirection == ScrollDirection.NONE -> return@LaunchedEffect
+            else -> {
+                directionalLazyListState.scrollDirection == ScrollDirection.UP
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = chatUiState.usersTyping) {
+        isOppositeUserTyping = when {
+            chatUiState.usersTyping.size == 1 && chatUiState.usersTyping.contains(mainUser.id) -> false
+            chatUiState.usersTyping.isEmpty() -> false
+            else -> true
+        }
+    }
+
+    LaunchedEffect(key1 = lastItemIndex) {
+        if(lastItemIndex > 3 || isFirstCheckLastMessagesLaunchedEffectCall) {
+            isCheckingLastMessages = false
+        }
+    }
+
+    LaunchedEffect(key1 = paginatedMessages.itemCount,key2 = chatUiState.chat.lastReads[mainUser.id]) {
+        if(paginatedMessages.itemCount != 0) {
+            dispatchEvent(OneToOneChatViewModelEvent.SetUnseenMessagesCount(mainUser.id))
+        }
+    }
+
+
+    LaunchedEffect(key1 = chatUiState.chat.messages) {
+        if(paginatedMessages.itemCount != 0 && isCheckingLastMessages) {
+            delay(1000)
+
+            visibleItemsInfo.forEach { item ->
+                val chatItem = paginatedMessages[item.index]
+
+                chatItem?.let {
+                    if(chatItem is ChatItem.MessageItem) {
+                        dispatchEvent(OneToOneChatViewModelEvent.AddMessageToReadList(chatItem.message,mainUser.id))
+                    }
+                }
+            }
+
+            dispatchEvent(OneToOneChatViewModelEvent.SetMessagesReadStatus(mainUser.id))
+        }
+    }
+
+    LaunchedEffect(key1 = paginatedMessages.itemSnapshotList.firstOrNull()) {
+        if(isFirstScrollDownLaunchedEffectCall) {
+            isFirstScrollDownLaunchedEffectCall = false
+            return@LaunchedEffect
+        }
+
+        if(paginatedMessages.itemCount != 0 && lastItemIndex <= 3) {
+            lazyListState.animateScrollToItem(0)
+        }
+    }
+
+    LaunchedEffect(key1 = visibleItemsInfo.map { it.index }) {
+        if(paginatedMessages.itemCount != 0 && visibleItemsInfo.isNotEmpty()) {
+            visibleItemsInfo.forEach { item ->
+                val chatItem = paginatedMessages[item.index]
+
+                chatItem?.let {
+                    if(chatItem is ChatItem.MessageItem) {
+                        dispatchEvent(OneToOneChatViewModelEvent.AddMessageToReadList(chatItem.message,mainUser.id))
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = lazyListState) {
+        snapshotFlow { lazyListState.isScrollInProgress }
+            .collectLatest { isScrollInProgress ->
+                if(!isScrollInProgress && !isCheckingLastMessages) {
+                    Log.d("finish scroll","FINISHED!")
+
+                    when {
+                        isFirstCheckLastMessagesLaunchedEffectCall ->  isFirstCheckLastMessagesLaunchedEffectCall = false
+                        lastItemIndex <= 3 -> isCheckingLastMessages = true
+                    }
+
+                    dispatchEvent(OneToOneChatViewModelEvent.SetMessagesReadStatus(mainUser.id))
+                }
+            }
+    }
+
     Scaffold(
         modifier = Modifier,
         contentWindowInsets = ScaffoldDefaults
@@ -221,7 +269,10 @@ fun OneToOneChatScreen(
                     modifier = Modifier
                         .size(50.sdp),
                     iconPadding = 10.sdp,
-                    navController = navController
+                    onClick = {
+                        navController.navigateBack()
+                        dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,mainUser.id))
+                    }
                 )
 
                 UserImage(
@@ -288,7 +339,8 @@ fun OneToOneChatScreen(
                         .fillMaxSize(),
                     reverseLayout = true,
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.sdp),
+                 //   verticalArrangement = Arrangement.spacedBy(4.sdp),
+                    verticalArrangement = Arrangement.Top,
                     state = lazyListState,
                 ) {
                     val itemCount = paginatedMessages.itemCount
@@ -353,10 +405,28 @@ fun OneToOneChatScreen(
                             .align(Alignment.BottomEnd),
                         onClick = {
                             scope.launch {
-                                lazyListState.scrollToItem(0)
+                                lazyListState.animateScrollToItem(0)
                             }
-                        }
+                        },
+                        unseenMessagesCount = chatUiState.unseenMessagesCount
                     )
+                }
+
+                if(isOppositeUserTyping) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(start = 12.sdp, bottom = 5.sdp)
+                            .clip(RoundedCornerShape(6.sdp))
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .padding(7.sdp),
+                            text = "${chatUiState.user.name} Is Typing...",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
 
             }
@@ -368,14 +438,16 @@ fun OneToOneChatScreen(
                     .imePadding()
                     .heightIn(65.sdp, 250.sdp)
                     .background(MaterialTheme.colorScheme.tertiary),
-                value = chatUiState.sendMessageQuery,
+                value = chatUiState.sendMessageText,
                 onValueChange = { query ->
                     dispatchEvent(OneToOneChatViewModelEvent.OnEnterQueryChange(query))
                 },
                 sendMessage = { message ->
                     dispatchEvent(OneToOneChatViewModelEvent.SendMessage(message))
-                    scope.launch {
-                        lazyListState.scrollToItem(0)
+                    if(lastItemIndex > 1) {
+                        scope.launch {
+                            lazyListState.animateScrollToItem(0)
+                        }
                     }
                 },
                 addLocalChat = {
@@ -386,6 +458,13 @@ fun OneToOneChatScreen(
 
                     dispatchEvent(OneToOneChatViewModelEvent.AddLocalChatInfo(mainUser.id,localChatInfo))
                     dispatchEvent(OneToOneChatViewModelEvent.AddLocalChatInfo(chatUiState.user.id,localChatInfo))
+                },
+                isUserTyping = { isTyping ->
+                    if(isTyping) {
+                        dispatchEvent(OneToOneChatViewModelEvent.AddUserTyping(chatUiState.chat.id,mainUser.id))
+                    } else {
+                        dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,mainUser.id))
+                    }
                 }
             )
         }
@@ -403,7 +482,7 @@ private fun MyMessageCard(
 
     Box(
         modifier = modifier
-            .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 5.sdp, start = 80.sdp)
+            .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 0.sdp, start = 80.sdp)
             .fillMaxWidth(),
         contentAlignment = Alignment.CenterEnd,
     ) {
@@ -465,7 +544,7 @@ private fun OppositeUserMessageCard(
 ) {
     Row(
         modifier = modifier
-            .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 5.sdp, end = 80.sdp)
+            .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 0.sdp, end = 80.sdp)
             .fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
     ) {
@@ -487,7 +566,7 @@ private fun OppositeUserMessageCard(
 
         Column (
             modifier = Modifier
-                .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 5.sdp)
+                .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 0.sdp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(
@@ -533,11 +612,11 @@ private fun previewChatScreen() {
         OneToOneChatScreen(
             chatUiState = OneToOneChatUiState(
                 user = User(name = "Tester ALLAHU AKBAR SYRIA ALAHU"),
-                sendMessageQuery = "Hello"
+                sendMessageText = "Hello"
             ),
             paginatedMessages = flowOf(PagingData.from(fakeMessages)).collectAsLazyPagingItems(),
             navController = rememberNavController(),
-            dispatchEvent = {}
+            dispatchEvent = { Job().job }
         )
     }
 }
