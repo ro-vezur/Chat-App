@@ -11,20 +11,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import androidx.navigation.NavController
 import com.example.chatapp.differentScreensSupport.sdp
 
 @Composable
 fun TurnBackButton(
     modifier: Modifier = Modifier.size(40.sdp),
     iconPadding: Dp = 6.sdp,
-    navController: NavController,
+    onClick: () -> Unit
 ) {
     IconButton(
         modifier = modifier,
-        onClick = {
-            navController.navigateUp()
-        }
+        onClick = onClick
     ) {
         Icon(
             modifier = Modifier
