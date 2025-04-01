@@ -11,4 +11,5 @@ data class ChatUI(
     val name: String? = null,
     val imageUrl: String? = null,
     val userId: String? = null,
+    val unseenMessagesCount: Int = 0,
 )
