@@ -1,6 +1,6 @@
 package com.example.chatapp.model.db.messagesDbUseCases.gets
 
-import com.example.chatapp.CHATS_DB_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Chat
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
@@ -12,7 +12,7 @@ class GetLastReadMessageIdUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(chatId: String, userId: String): String? {
         return try {
-            val chatRef = firestore.collection(CHATS_DB_COLLECTION).document(chatId).get().await()
+            val chatRef = firestore.collection(CHATS_DB).document(chatId).get().await()
             val chat = chatRef.toObject<Chat>()
 
             when {

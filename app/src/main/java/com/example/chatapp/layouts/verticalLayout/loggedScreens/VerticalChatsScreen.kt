@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
@@ -25,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,11 +73,10 @@ fun VerticalChatsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(70.sdp)
-                                    .clip(RoundedCornerShape(20))
                                     .clickable {
-                                        if (chat.chatType == ChatType.USER ) {
-                                            Log.d("chat id",chat.id)
-                                            Log.d("opposite user id",chat.userId.toString())
+                                        if (chat.chatType == ChatType.USER) {
+                                            Log.d("chat id", chat.id)
+                                            Log.d("opposite user id", chat.userId.toString())
                                             dispatchEvent(
                                                 ChatsViewModelEvent.NavigateTo("${ScreenRoutes.LoggedScreens.OneToOneChatRoute.MAIN_ROUTE_PART}/${chat.id}/${chat.userId}")
                                             )
@@ -105,13 +105,38 @@ fun ChatCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
     ) {
-        UserImage(
+        Box(
             modifier = Modifier
                 .padding(horizontal = 8.sdp)
-                .size(60.sdp)
-                .clip(CircleShape),
-            imageUrl = chatUI.imageUrl
-        )
+                .size(65.sdp)
+        ) {
+            UserImage(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(60.sdp)
+                    .clip(CircleShape),
+                imageUrl = chatUI.imageUrl
+            )
+
+            if(chatUI.unseenMessagesCount != 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(25.sdp)
+                        .clip(CircleShape)
+                        .background(colorScheme.error)
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        text = chatUI.unseenMessagesCount.toString(),
+                        style = typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
 
         Column(
             modifier = Modifier

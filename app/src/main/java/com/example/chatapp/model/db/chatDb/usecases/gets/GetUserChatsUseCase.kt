@@ -1,11 +1,12 @@
 package com.example.chatapp.model.db.chatDb.usecases.gets
 
-import com.example.chatapp.CHATS_DB_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.Dtos.chat.ChatUI
 import com.example.chatapp.Dtos.chat.LocalChatInfo
 import com.example.chatapp.Dtos.chat.chatType.ChatType
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.gets.GetUnseenMessagesCountUseCase
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.others.Resource
 import com.google.firebase.firestore.FirebaseFirestore
@@ -23,8 +24,9 @@ class GetUserChatsUseCase @Inject constructor(
     db: FirebaseFirestore,
     private val observeUserUseCase: ObserveUserUseCase,
     private val getChatMessageUseCase: GetChatMessageUseCase,
+    private val getUnseenMessagesCountUseCase: GetUnseenMessagesCountUseCase,
 ) {
-    private val chatsDb = db.collection(CHATS_DB_COLLECTION)
+    private val chatsDb = db.collection(CHATS_DB)
 
     operator fun invoke(userId: String, contacts: List<LocalChatInfo> ): Flow<Resource<List<ChatUI>>> = callbackFlow<Resource<List<ChatUI>>> {
         val listener = chatsDb
@@ -44,6 +46,7 @@ class GetUserChatsUseCase @Inject constructor(
                             val contact = contacts.find { contact -> contact.id == chat.id }
 
                             contact?.let {
+                                val lastReadMessage = getChatMessageUseCase(chat.id,chat.lastReads[userId] ?: "")
                                 val isPinned = contact.isPinned
                                 when(chat.chatType) {
                                     ChatType.USER -> {
@@ -59,7 +62,8 @@ class GetUserChatsUseCase @Inject constructor(
                                                     isPinned = isPinned,
                                                     name = oppositeUser.name,
                                                     imageUrl = oppositeUser.imageUrl,
-                                                    userId = chat.getOppositeUserId(userId)
+                                                    userId = chat.getOppositeUserId(userId),
+                                                    unseenMessagesCount = getUnseenMessagesCountUseCase(chat.id,lastReadMessage)
                                                 )
 
                                                 if(chatsUI.map { it.id }.contains(chatUI.id)) {
