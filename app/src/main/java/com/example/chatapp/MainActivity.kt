@@ -33,7 +33,6 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 val LocalUser = compositionLocalOf { User() }
@@ -58,27 +57,26 @@ class MainActivity : ComponentActivity() {
             )
 
             var keepSplashScreen = true
-            var isLogged by  remember { mutableStateOf(false) }
+            var isLogged by  remember { mutableStateOf<Boolean?>(null) }
 
             splashScreen.setKeepOnScreenCondition{ keepSplashScreen}
 
             LaunchedEffect(Unit){
                 lifecycleScope.launch {
+                    FirebaseAuth.getInstance().addAuthStateListener {  }
                     isLogged = FirebaseAuth.getInstance().currentUser != null
-                    delay(300)
                     keepSplashScreen = false
                 }
             }
 
             val user by sharedUserViewModel.user.collectAsStateWithLifecycle()
+            val unseenMessagesCount by sharedUserViewModel.unseenMessagesCount.collectAsStateWithLifecycle()
             val isAskedForNotificationPermission by sharedUserViewModel.isAskedForNotificationPermission.collectAsStateWithLifecycle()
 
             FirebaseAuth.getInstance().addAuthStateListener {
                 isLogged = it.currentUser != null
 
-                if(isLogged) {
-
-          //          sharedUserViewModel.updateOnlineStatus(true)
+                if(isLogged == true) {
                     if(!isAskedForNotificationPermission && !notificationPermission.status.isGranted) {
                         notificationPermission.launchPermissionRequest()
                         sharedUserViewModel.saveIsAskedNotificationPermission(true)
@@ -92,10 +90,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainView(
-                        isLogged = isLogged,
-                        user = user,
-                    )
+                    isLogged?.let {
+                        MainView(
+                            isLogged = it,
+                            user = user,
+                            unseenMessagesCount = unseenMessagesCount,
+                        )
+                    }
                 }
             }
         }
@@ -134,7 +135,8 @@ fun GreetingPreview() {
         ) {
             MainView(
                 isLogged = false,
-                user = User()
+                user = User(),
+                unseenMessagesCount = 0,
             )
         }
     }

@@ -15,6 +15,7 @@ fun MainNavGraph(
     isLogged: Boolean,
     updateBottomBarState: (Boolean) -> Unit,
 ) {
+   // Log.d("isLogged",isLogged.toString())
 
     NavHost(
         modifier = modifier

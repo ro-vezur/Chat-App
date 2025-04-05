@@ -16,7 +16,7 @@ import com.example.chatapp.layouts.sharedComponents.bottomNavigationBar.BottomNa
 import com.example.chatapp.navigation.MainNavGraph
 
 @Composable
-fun MainView(isLogged: Boolean,user: User) {
+fun MainView(isLogged: Boolean,user: User,unseenMessagesCount: Int) {
 
     val navHostController = rememberNavController()
     var showBottomBar by rememberSaveable { mutableStateOf(true) }
@@ -27,7 +27,10 @@ fun MainView(isLogged: Boolean,user: User) {
                 .systemBarsPadding(),
             bottomBar = {
                 if (isLogged && showBottomBar) {
-                    BottomNavigationBar(navController = navHostController)
+                    BottomNavigationBar(
+                        navController = navHostController,
+                        unseenMessagesCount = unseenMessagesCount,
+                    )
                 }
             }
         ) { innerPadding ->
