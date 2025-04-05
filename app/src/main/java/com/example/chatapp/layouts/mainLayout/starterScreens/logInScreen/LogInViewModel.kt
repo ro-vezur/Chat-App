@@ -1,5 +1,6 @@
 package com.example.chatapp.layouts.mainLayout.starterScreens.logInScreen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.DD_MM_YYYY_HH_MM
@@ -92,9 +93,13 @@ class LogInViewModel @Inject constructor(
             }
             else -> {
                 logInUseCase(user).collectLatest { result ->
+
+                    Log.d("log in result",result.toString())
+
                     _logInUiState.emit(
                         _logInUiState.value.copy(
-                            logInResult = result
+                            logInResult = result,
+                            passwordValidationResult = ValidationResult.Success("Success")
                         )
                     )
                 }

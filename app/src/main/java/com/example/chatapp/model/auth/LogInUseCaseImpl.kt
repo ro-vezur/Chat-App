@@ -1,5 +1,6 @@
 package com.example.chatapp.model.auth
 
+import android.util.Log
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.domain.auth.LogInUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.AddFcmTokenUseCase
@@ -23,6 +24,9 @@ class LogInUseCaseImpl @Inject constructor(
 
         val result = firebaseAuth.signInWithEmailAndPassword(user.email,user.password).await()
         val newToken = Firebase.messaging.token.await()
+
+        Log.d("auth result",result.toString())
+        Log.d("FCM TOKEN",newToken)
 
         addFcmTokenUseCase(newToken)
 

@@ -12,8 +12,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.layouts.landscapeLayout.starterScreens.LandscapeLoginScreen
-import com.example.chatapp.layouts.verticalLayout.starterScreens.VerticalLoginScreen
 import com.example.chatapp.layouts.sharedComponents.validation.ValidationResult
+import com.example.chatapp.layouts.verticalLayout.starterScreens.VerticalLoginScreen
 import com.example.chatapp.ui.theme.ChatAppTheme
 
 @Composable
@@ -60,8 +60,8 @@ private fun SignUpPreview() {
             LogInScreen(
                 navController = rememberNavController(),
                 logInUiState = LogInUiState(
-                    emailValidationResult = ValidationResult.Success,
-                    passwordValidationResult = ValidationResult.Success,
+                    emailValidationResult = ValidationResult.Success(),
+                    passwordValidationResult = ValidationResult.Success(),
                 ),
                 validateEmail = {},
                 validatePassword = {},

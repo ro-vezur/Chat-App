@@ -14,7 +14,7 @@ class ValidateEmailUseCase @Inject constructor(
             checkIsEmailRegisteredUseCase(email) == checkIsEmailRegisteredValidator -> { ValidationResult.Error(
                 if(checkIsEmailRegisteredValidator) "This Email Already Used" else "Didn't Found User With Given Email"
             )}
-            else -> { ValidationResult.Success }
+            else -> { ValidationResult.Success() }
         }
     }
 }

@@ -28,6 +28,7 @@ class UpdateUserLogInStateUseCase @Inject constructor(
                     var logInState = user.logInState
 
                     logInState.blockedUntil?.let { blockedUntil ->
+
                         if(getCurrentTimeInMillis() >= blockedUntil) {
                             logInState = LogInState()
                             transaction.update(userDocumentRef,"logInState",logInState)
@@ -38,7 +39,11 @@ class UpdateUserLogInStateUseCase @Inject constructor(
 
                     if(user.password != password) {
 
-                        logInState = logInState.copy(failedAttempts = logInState.failedAttempts + 1)
+
+                        logInState = logInState.copy(
+                            failedAttempts = if(getCurrentTimeInMillis() >= (logInState.lastAttemptWasAt ?: Long.MAX_VALUE)) 0 else logInState.failedAttempts + 1,
+                            lastAttemptWasAt = getFutureTimeInMillis(AWAIT_MINUTES_UNTIL_UNBLOCK)
+                        )
 
                         if (logInState.failedAttempts >= MAX_LOGIN_ATTEMPTS) {
                             logInState = logInState.copy(
@@ -48,6 +53,13 @@ class UpdateUserLogInStateUseCase @Inject constructor(
                         } else {
                             transaction.update(userDocumentRef, "logInState", logInState)
                         }
+                    } else {
+                        logInState = LogInState(
+                            failedAttempts = 0,
+                            lastAttemptWasAt = null
+                        )
+
+                        transaction.update(userDocumentRef,"logInState",logInState)
                     }
 
                 } else {

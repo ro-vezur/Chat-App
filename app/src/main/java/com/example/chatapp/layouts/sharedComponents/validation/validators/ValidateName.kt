@@ -8,7 +8,7 @@ class ValidateName @Inject constructor() {
         return when {
             name.length < 3 -> { ValidationResult.Error("Minimum 3 letters") }
             name.length > 20 -> { ValidationResult.Error("Maximum 20 letters, currently ${name.length} letters used") }
-            else -> { ValidationResult.Success }
+            else -> { ValidationResult.Success() }
         }
     }
 }

@@ -8,7 +8,7 @@ class ValidateConfirmPassword @Inject constructor() {
         return when {
             confirmPassword.isBlank() -> { ValidationResult.Error("Field is Empty") }
             confirmPassword != password -> { ValidationResult.Error("Passwords mismatch") }
-            else -> { ValidationResult.Success }
+            else -> { ValidationResult.Success() }
         }
     }
 }

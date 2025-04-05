@@ -109,10 +109,12 @@ fun NavGraphBuilder.loggedNavGraph(
                     factory.create(chatId,userId)
                 }
                 val chatUiState by chatViewModel.chatUiState.collectAsStateWithLifecycle()
+                val sendMessageText by chatViewModel.sendMessageText.collectAsStateWithLifecycle()
                 val paginatedMessages = chatViewModel.paginatedMessages.collectAsLazyPagingItems()
 
                 OneToOneChatScreen(
                     chatUiState = chatUiState,
+                    sendMessageText = sendMessageText,
                     paginatedMessages = paginatedMessages,
                     navController = navController,
                     dispatchEvent = chatViewModel::dispatchEvent

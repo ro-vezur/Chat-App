@@ -15,7 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import com.example.chatapp.differentScreensSupport.sdp
+import com.example.chatapp.ui.theme.FriendColor
 
 @Composable
 fun ValidatedTextField(
@@ -29,6 +30,7 @@ fun ValidatedTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Unspecified),
 ) {
     val isError = validationResult is ValidationResult.Error
+    val isSuccess = validationResult is ValidationResult.Success
 
     Column(
         modifier = modifier
@@ -51,13 +53,13 @@ fun ValidatedTextField(
                 .fillMaxWidth()
         )
 
-        if(isError) {
+        if(isError || isSuccess && validationResult.resultMessage != null) {
             Text(
-                text = validationResult.errorMessage.toString(),
-                color = MaterialTheme.colorScheme.error,
+                text = validationResult.resultMessage.toString(),
+                color = if(isSuccess) FriendColor else MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
-                    .padding(top = 8.dp)
+                    .padding(top = 8.sdp)
                     .weight(1f)
             )
         }

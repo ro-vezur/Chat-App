@@ -15,7 +15,7 @@ class ValidatePassword @Inject constructor(
             !password.containsUppercase() -> { ValidationResult.Error(errorMessage = "Minimum 1 Uppercase") }
             !password.containsLowercase() -> { ValidationResult.Error(errorMessage = "Minimum 1 Lowercase") }
             !password.containsDigit() -> { ValidationResult.Error(errorMessage = "Minimum 1 Digit") }
-            else -> { ValidationResult.Success }
+            else -> { ValidationResult.Success() }
         }
     }
 }

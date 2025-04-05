@@ -30,9 +30,9 @@ object AuthDI {
     @Singleton
     fun provideLogInUseCase(
         firebaseAuth: FirebaseAuth,
-        updateCurrentUserTokenUseCase: AddFcmTokenUseCase,
+        addFcmTokenUseCase: AddFcmTokenUseCase,
     ): LogInUseCase {
-        return LogInUseCaseImpl(firebaseAuth = firebaseAuth,addFcmTokenUseCase = updateCurrentUserTokenUseCase)
+        return LogInUseCaseImpl(firebaseAuth = firebaseAuth,addFcmTokenUseCase = addFcmTokenUseCase)
     }
 
     @Provides
