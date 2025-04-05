@@ -1,7 +1,7 @@
 package com.example.chatapp.model.db.messagesDbUseCases.posts
 
 import android.util.Log
-import com.example.chatapp.CHATS_DB
+import com.example.chatapp.CHATS_COLLECTION
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.MESSAGES_DB
 import com.example.chatapp.helpers.time.getCurrentTimeInMillis
@@ -18,7 +18,7 @@ class SetMessagesReadStatusUseCase @Inject constructor(
     operator fun invoke(messagesReadList: List<Message>, chatId: String,userId: String,onSuccess: () -> Unit) {
         try {
             messagesReadList.forEach { message ->
-                val messageRef = db.child(CHATS_DB).child(chatId).child(MESSAGES_DB).child(message.id)
+                val messageRef = db.child(CHATS_COLLECTION).child(chatId).child(MESSAGES_DB).child(message.id)
                 messageRef.runTransaction(
                     object : Transaction.Handler {
                         override fun doTransaction(currentData: MutableData): Transaction.Result {

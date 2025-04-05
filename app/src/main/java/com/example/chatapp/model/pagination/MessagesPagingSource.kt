@@ -1,7 +1,5 @@
 package com.example.chatapp.model.pagination
 
-import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.chatapp.Dtos.chat.Message
@@ -13,16 +11,12 @@ class MessagesPagingSource (
     private val query: Query,
     private val pageSize: Int,
     private val lastReadTimeStamp: Long?,
-    private val firstTimestampKey: MutableState<Long?>,
-    private val anchorPosition: MutableState<Long?>,
 ) : PagingSource<Long, Message>() {
 
-    override fun getRefreshKey(state: PagingState<Long, Message>): Long? {
-        return state.anchorPosition?.let { anchor ->
-            anchorPosition.value = state.closestItemToPosition(anchor)?.sentTimeStamp
-            state.closestItemToPosition(anchor)?.sentTimeStamp
-        }
-    }
+    override val jumpingSupported: Boolean
+        get() = true
+
+    override fun getRefreshKey(state: PagingState<Long, Message>): Long? = state.anchorPosition?.let { anchor -> state.closestItemToPosition(anchor)?.sentTimeStamp }
 
     override suspend fun load(params: LoadParams<Long>): LoadResult<Long, Message> {
         return try {
@@ -33,15 +27,15 @@ class MessagesPagingSource (
                 is LoadParams.Refresh -> {
                     when {
                         key != null -> {
-                            Log.d("fetch with key",key.toString())
+                            //Log.d("fetch with key",key.toString())
                             query.limitToLast(pageSize)
                         }
                         lastReadTimeStamp != null -> {
-                            Log.d("last read fetch","!!!")
+                        //    Log.d("last read fetch","!!!")
                             query.endAt(lastReadTimeStamp.toDouble()).limitToLast(pageSize)
                         }
                         else -> {
-                            Log.d("else","!!!")
+                         //   Log.d("else","!!!")
                             query.limitToLast(pageSize)
                         }
                     }
@@ -59,16 +53,9 @@ class MessagesPagingSource (
                         .limitToLast(pageSize)
                 }
             }
-
             val seenSnapshot = queryToExecute.get().await()
             val messages = seenSnapshot.children.mapNotNull { it.getValue(Message::class.java) }
                 .sortedByDescending { it.sentTimeStamp }
-
-            if(messages.isNotEmpty()) {
-                firstTimestampKey.value = 0
-            //    Log.d("messages content",messages.map { it.content }.toString())
-            }
-
 
             LoadResult.Page(
                 data = messages,

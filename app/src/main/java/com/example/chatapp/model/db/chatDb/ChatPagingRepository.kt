@@ -1,23 +1,25 @@
 package com.example.chatapp.model.db.chatDb
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.chatapp.CHATS_DB
+import com.example.chatapp.CHATS_COLLECTION
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.MESSAGES_DB
 import com.example.chatapp.MESSAGES_PER_PAGE
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastReadMessageIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
+import com.example.chatapp.model.pagination.MessageUpdate
 import com.example.chatapp.model.pagination.MessagesPagingSource
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.emptyFlow
 import javax.inject.Inject
 
@@ -27,8 +29,6 @@ class ChatPagingRepository @Inject constructor(
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
     private val getChatMessageUseCase: GetChatMessageUseCase,
 ) {
-    private var firstTimestampKey: MutableState<Long?> = mutableStateOf(null)
-    private var anchorPosition: MutableState<Long?> = mutableStateOf(null)
 
     private var pagingSource: MessagesPagingSource? = null
 
@@ -41,11 +41,10 @@ class ChatPagingRepository @Inject constructor(
             Pager(
                 config = PagingConfig(
                     pageSize = MESSAGES_PER_PAGE,
-                    enablePlaceholders = true,
-                    prefetchDistance = 5,
+                    prefetchDistance = 15,
                 ),
                 pagingSourceFactory = { createPagingSource(chatId,lastReadMessage) },
-            ).flow
+                ).flow
         } catch (e: Exception) {
             e.printStackTrace()
             emptyFlow()
@@ -53,42 +52,54 @@ class ChatPagingRepository @Inject constructor(
     }
 
     private fun createPagingSource(chatId: String,lastReadMessage: Message?): MessagesPagingSource {
-        val query =  db.child(CHATS_DB).child(chatId).child(MESSAGES_DB).orderByChild("sentTimeStamp")
+        val query =  db.child(CHATS_COLLECTION).child(chatId).child(MESSAGES_DB).orderByChild("sentTimeStamp")
 
         pagingSource = MessagesPagingSource(
             query = query,
             pageSize = MESSAGES_PER_PAGE,
             lastReadTimeStamp = lastReadMessage?.sentTimeStamp,
-            firstTimestampKey = firstTimestampKey,
-            anchorPosition = anchorPosition,
         )
 
         return pagingSource!!
     }
 
-    private fun refreshMessages() {
-        pagingSource?.invalidate()
-    }
+    fun messagesListener(chatId: String) = callbackFlow {
+        val chatRef = db.child(CHATS_COLLECTION).child(chatId).child(MESSAGES_DB)
 
-    fun messagesListener(chatId: String) {
-        val chatRef = db.child(CHATS_DB).child(chatId).child(MESSAGES_DB)
+        var isInitialLoad = true
+        val processedMessagesIds = mutableListOf<String>()
+
+        val initialLoadListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                snapshot.children.forEach { child ->
+                    child.key?.let { processedMessagesIds.add(it) }
+                }
+                isInitialLoad = false
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        }
+
+        chatRef.addListenerForSingleValueEvent(initialLoadListener)
 
         val messagesListener = object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                if(snapshot.exists() && snapshot.hasChildren()) {
-                    refreshMessages()
+                if(!isInitialLoad) {
+                    snapshot.getValue(Message::class.java)?.let { message ->
+                        trySend(MessageUpdate.Added(message))
+                    }
                 }
             }
 
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                if(snapshot.exists() && snapshot.hasChildren()) {
-                    refreshMessages()
+                snapshot.getValue(Message::class.java)?.let { message ->
+                    trySend(MessageUpdate.Updated(message))
                 }
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
-                if(snapshot.exists() && snapshot.hasChildren()) {
-                    refreshMessages()
+                snapshot.getValue(Message::class.java)?.let { message ->
+                    trySend(MessageUpdate.Removed(message))
                 }
             }
 
@@ -101,7 +112,10 @@ class ChatPagingRepository @Inject constructor(
             }
         }
 
-        chatRef.removeEventListener(messagesListener)
         chatRef.addChildEventListener(messagesListener )
+
+        awaitClose {
+            chatRef.removeEventListener(messagesListener)
+        }
     }
 }

@@ -1,6 +1,6 @@
 package com.example.chatapp.model.db.chatDb.usecases.gets
 
-import com.example.chatapp.CHATS_DB
+import com.example.chatapp.CHATS_COLLECTION
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.Dtos.chat.chatType.ChatType
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,7 +10,7 @@ import javax.inject.Inject
 class GetOneToOneChatUseCase @Inject constructor(
     db: FirebaseFirestore
 ) {
-    private val chatsDb = db.collection(CHATS_DB)
+    private val chatsDb = db.collection(CHATS_COLLECTION)
 
     suspend operator fun invoke(usersIds: List<String>): Chat? {
         return try {

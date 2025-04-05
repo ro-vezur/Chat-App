@@ -7,6 +7,5 @@ data class OneToOneChatUiState(
     val chat: Chat = Chat(),
     val user: User = User(),
     val unseenMessagesCount: Int = 0,
-    val sendMessageText: String = "",
     val usersTyping: List<String> = listOf(),
 )

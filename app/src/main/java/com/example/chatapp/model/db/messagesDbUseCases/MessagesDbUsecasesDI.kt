@@ -1,5 +1,6 @@
 package com.example.chatapp.model.db.messagesDbUseCases
 
+import com.example.chatapp.model.db.messagesDbUseCases.gets.GetAllUserChatsUnseenMessagesCountUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastReadMessageIdUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetUnseenMessagesCountUseCase
@@ -17,6 +18,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object MessagesDbUsecasesDI {
+
+    @Provides
+    @Singleton
+    fun provideGetAllUserChatsUnseenMessagesCountUseCase(fireStore: FirebaseFirestore) = GetAllUserChatsUnseenMessagesCountUseCase(fireStore)
 
     @Provides
     @Singleton

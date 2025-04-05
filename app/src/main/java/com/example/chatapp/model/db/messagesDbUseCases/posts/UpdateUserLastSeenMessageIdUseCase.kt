@@ -1,6 +1,6 @@
 package com.example.chatapp.model.db.messagesDbUseCases.posts
 
-import com.example.chatapp.CHATS_DB
+import com.example.chatapp.CHATS_COLLECTION
 import com.example.chatapp.Dtos.chat.Chat
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
@@ -13,7 +13,7 @@ class UpdateUserLastSeenMessageIdUseCase @Inject constructor(
     suspend operator fun invoke(userId: String, chatId: String, messageId: String) {
         try {
             firestore.runTransaction { transaction ->
-                val chatRef = firestore.collection(CHATS_DB).document(chatId)
+                val chatRef = firestore.collection(CHATS_COLLECTION).document(chatId)
                 val chat = transaction[chatRef].toObject<Chat>()
 
                 chat?.let {
