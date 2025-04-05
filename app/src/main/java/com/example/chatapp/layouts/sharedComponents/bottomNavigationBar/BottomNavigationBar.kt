@@ -35,6 +35,7 @@ import com.example.chatapp.ui.theme.ChatAppTheme
 @Composable
 fun BottomNavigationBar(
     navController: NavController,
+    unseenMessagesCount: Int,
 ) {
     val user = LocalUser.current
 
@@ -74,9 +75,9 @@ fun BottomNavigationBar(
                         badge = {
                             var messageChatsCounter by remember { mutableStateOf(0) }
 
-                            LaunchedEffect(user.requests) {
+                            LaunchedEffect(user.requests,unseenMessagesCount) {
                                 messageChatsCounter =  when(item) {
-                                    BottomNavigationBarItems.CHATS -> 0
+                                    BottomNavigationBarItems.CHATS -> unseenMessagesCount
                                     BottomNavigationBarItems.FRIENDS -> 0
                                     BottomNavigationBarItems.FRIENDS_REQUESTS -> user.requests.size
                                     BottomNavigationBarItems.SETTINGS -> 0
@@ -136,7 +137,8 @@ private fun previewBottomNavBar() {
                 contentAlignment = Alignment.BottomCenter
             ) {
                 BottomNavigationBar(
-                    navController = rememberNavController()
+                    navController = rememberNavController(),
+                    unseenMessagesCount = 0,
                 )
             }
         }

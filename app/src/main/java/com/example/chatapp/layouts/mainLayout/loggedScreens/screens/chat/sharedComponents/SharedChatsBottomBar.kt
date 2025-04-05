@@ -1,6 +1,5 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents
 
-import android.util.Log
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -25,21 +24,16 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.LocalUser
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.helpers.time.getCurrentTimeInMillis
-import kotlinx.coroutines.delay
 import java.util.UUID
 
 @Composable
@@ -52,20 +46,10 @@ fun SharedChatsBottomBar(
     isUserTyping: (Boolean) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    var sendMessageDebounce by rememberSaveable {
-        mutableStateOf(false)
-    }
 
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     val mainUser = LocalUser.current
-
-    LaunchedEffect(key1 = sendMessageDebounce) {
-        if(sendMessageDebounce) {
-            delay(1000)
-            sendMessageDebounce = false
-        }
-    }
 
     LaunchedEffect(key1 = isFocused,key2 = value) {
         isUserTyping(isFocused && value.isNotEmpty())
@@ -82,16 +66,6 @@ fun SharedChatsBottomBar(
             modifier = Modifier
                 .heightIn(50.sdp, Int.MAX_VALUE.sdp)
                 .weight(4f)
-                .onFocusChanged { focusState ->
-                    Log.d("is captured", focusState.isCaptured.toString())
-                    Log.d("is focused?", focusState.isFocused.toString())
-
-                    if (focusState.isFocused) {
-
-                    } else {
-
-                    }
-                }
                 .focusable(),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
@@ -157,13 +131,9 @@ fun SharedChatsBottomBar(
                         sentTimeStamp = getCurrentTimeInMillis(),
                     )
 
-                    if(!sendMessageDebounce) {
-                        sendMessageDebounce = true
-                        onValueChange("")
-                        sendMessage(message)
-                        addLocalChat()
-                    }
-
+                    onValueChange("")
+                    sendMessage(message)
+                    addLocalChat()
                 }
             ) {
                 Icon(
