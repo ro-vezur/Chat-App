@@ -1,6 +1,7 @@
 package com.example.chatapp.model.db.chatDb.usecases.gets
 
-import com.example.chatapp.CHATS_DB
+import android.util.Log
+import com.example.chatapp.CHATS_COLLECTION
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.Dtos.chat.ChatUI
 import com.example.chatapp.Dtos.chat.LocalChatInfo
@@ -26,7 +27,7 @@ class GetUserChatsUseCase @Inject constructor(
     private val getChatMessageUseCase: GetChatMessageUseCase,
     private val getUnseenMessagesCountUseCase: GetUnseenMessagesCountUseCase,
 ) {
-    private val chatsDb = db.collection(CHATS_DB)
+    private val chatsDb = db.collection(CHATS_COLLECTION)
 
     operator fun invoke(userId: String, contacts: List<LocalChatInfo> ): Flow<Resource<List<ChatUI>>> = callbackFlow<Resource<List<ChatUI>>> {
         val listener = chatsDb
@@ -47,6 +48,11 @@ class GetUserChatsUseCase @Inject constructor(
 
                             contact?.let {
                                 val lastReadMessage = getChatMessageUseCase(chat.id,chat.lastReads[userId] ?: "")
+                                val unseenMessagesCount = getUnseenMessagesCountUseCase(chat.id,lastReadMessage,userId)
+
+                                Log.d("last read msg",lastReadMessage.id)
+                                Log.d("unseen msgs count",unseenMessagesCount.toString())
+
                                 val isPinned = contact.isPinned
                                 when(chat.chatType) {
                                     ChatType.USER -> {
@@ -63,7 +69,7 @@ class GetUserChatsUseCase @Inject constructor(
                                                     name = oppositeUser.name,
                                                     imageUrl = oppositeUser.imageUrl,
                                                     userId = chat.getOppositeUserId(userId),
-                                                    unseenMessagesCount = getUnseenMessagesCountUseCase(chat.id,lastReadMessage)
+                                                    unseenMessagesCount = unseenMessagesCount
                                                 )
 
                                                 if(chatsUI.map { it.id }.contains(chatUI.id)) {
