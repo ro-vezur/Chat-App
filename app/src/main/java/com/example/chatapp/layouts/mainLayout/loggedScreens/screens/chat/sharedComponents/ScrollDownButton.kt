@@ -1,5 +1,6 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +28,8 @@ fun ScrollDownButton(
     onClick: () -> Unit,
     unseenMessagesCount: Int,
 ) {
+    Log.d("recomposition","COMPOSE!")
+
     Box(
         modifier = modifier
             .padding(12.sdp)

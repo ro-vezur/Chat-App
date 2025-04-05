@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.userOnlineStatus.DeleteUserDeviceUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
@@ -20,6 +21,7 @@ class SettingsViewModel @Inject constructor(
     private val removeTokenUseCase: RemoveFcmTokenUseCase,
     private val auth: FirebaseAuth,
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+    private val deleteUserDeviceUseCase: DeleteUserDeviceUseCase,
 ): ViewModel() {
     private val _settingsUiState: MutableStateFlow<SettingsUiState> = MutableStateFlow(
         SettingsUiState()
@@ -34,11 +36,13 @@ class SettingsViewModel @Inject constructor(
 
     private fun logOut() = viewModelScope.launch {
         val newToken = Firebase.messaging.token.await()
+        val currentUserId = getCurrentUserIdUseCase()
 
         removeTokenUseCase(
-            userId = getCurrentUserIdUseCase(),
+            userId = currentUserId,
             token = newToken,
             onSuccess = {
+                deleteUserDeviceUseCase(currentUserId)
                 auth.signOut()
             }
         )

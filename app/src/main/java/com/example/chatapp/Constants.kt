@@ -4,7 +4,7 @@ package com.example.chatapp
 const val webClientId = BuildConfig.webClientID
 
 const val USERS_DB_COLLECTION = "users"
-const val CHATS_DB = "chats"
+const val CHATS_COLLECTION = "chats"
 const val MESSAGES_DB = "messages"
 const val USERS_TYPING_IN_CHAT = "users typing"
 
