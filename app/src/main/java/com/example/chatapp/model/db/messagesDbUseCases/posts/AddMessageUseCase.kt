@@ -4,6 +4,7 @@ import com.example.chatapp.CHATS_COLLECTION
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.MESSAGES_DB
+import com.example.chatapp.helpers.time.getCurrentTimeInMillis
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -26,8 +27,13 @@ class AddMessageUseCase @Inject constructor(
                     messagesInFirestore.add(message.id)
 
                     db.child(CHATS_COLLECTION).child(message.chatId).child(MESSAGES_DB).child(message.id).setValue(message)
-                    transaction.update(chatDocumentRef,"lastMessageId",message.id)
-                    transaction.update(chatDocumentRef,"messages",messagesInFirestore)
+                    transaction.set(
+                        chatDocumentRef,
+                        chat.copy(
+                            messages = messagesInFirestore,
+                            lastUpdateTimestamp = getCurrentTimeInMillis()
+                        )
+                    )
                 }
             }.await()
         } catch (e: Exception) {

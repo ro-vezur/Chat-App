@@ -1,4 +1,4 @@
-package com.example.chatapp.model.pagination
+package com.example.chatapp.model.pagination.messagesPagingSource
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
@@ -13,9 +13,6 @@ class MessagesPagingSource (
     private val lastReadTimeStamp: Long?,
 ) : PagingSource<Long, Message>() {
 
-    override val jumpingSupported: Boolean
-        get() = true
-
     override fun getRefreshKey(state: PagingState<Long, Message>): Long? = state.anchorPosition?.let { anchor -> state.closestItemToPosition(anchor)?.sentTimeStamp }
 
     override suspend fun load(params: LoadParams<Long>): LoadResult<Long, Message> {
@@ -27,27 +24,22 @@ class MessagesPagingSource (
                 is LoadParams.Refresh -> {
                     when {
                         key != null -> {
-                            //Log.d("fetch with key",key.toString())
                             query.limitToLast(pageSize)
                         }
                         lastReadTimeStamp != null -> {
-                        //    Log.d("last read fetch","!!!")
                             query.endAt(lastReadTimeStamp.toDouble()).limitToLast(pageSize)
                         }
                         else -> {
-                         //   Log.d("else","!!!")
                             query.limitToLast(pageSize)
                         }
                     }
                 }
                 is LoadParams.Prepend -> {
-                 //   Log.d("PREPEND",firstTimestampKey.toString())
                     query
                         .startAfter(key?.toDouble() ?: Double.MAX_VALUE)
                         .limitToLast(pageSize)
                 }
                 is LoadParams.Append -> {
-                //    Log.d("APPEND",lastTimestampKey.toString())
                     query
                         .endBefore(key?.toDouble() ?: 0.0)
                         .limitToLast(pageSize)

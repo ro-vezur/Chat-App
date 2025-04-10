@@ -28,7 +28,7 @@ import com.example.chatapp.model.db.messagesDbUseCases.posts.UpdateUserLastSeenM
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddLocalChatInfoUseCase
-import com.example.chatapp.model.pagination.MessageUpdate
+import com.example.chatapp.model.pagination.messagesPagingSource.MessageUpdate
 import com.example.chatapp.model.services.messanging.SendRemoteNotificationUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -217,9 +217,11 @@ class OneToOneChatViewModel @AssistedInject constructor(
             messagesReadList.sortByDescending { it.sentTimeStamp }
 
             if((lastReadMessage.sentTimeStamp ?: 0) < (messagesReadList.first().sentTimeStamp ?: 0) || lastReadMessageId.isEmpty()) {
-
+              //  Log.d("first msg id",messagesReadList.firstOrNull()?.content.toString())
                 updateUserLastSeenMessageIdUseCase(userId,chatId,messagesReadList.first().id)
             }
+
+
 
             setMessagesReadStatusUseCase(
                 messagesReadList.filter { it.userId != userId },chatId,userId, onSuccess = { clearMessagesReadList() }

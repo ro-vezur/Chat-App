@@ -1,4 +1,4 @@
-package com.example.chatapp.model.pagination
+package com.example.chatapp.model.pagination.messagesPagingSource
 
 import com.example.chatapp.Dtos.chat.Message
 

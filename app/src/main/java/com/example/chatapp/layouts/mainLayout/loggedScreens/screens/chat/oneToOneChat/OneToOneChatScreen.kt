@@ -211,20 +211,17 @@ fun OneToOneChatScreen(
     }
 
 
-    LaunchedEffect(key1 = chatUiState.chat.messages) {
+    LaunchedEffect(key1 = paginatedMessages.itemSnapshotList.firstOrNull()) {
         if(paginatedMessages.itemCount != 0 && isCheckingLastMessages) {
+           for (index in 0..2) {
+               val chatItem = paginatedMessages[index]
+
+               if(chatItem is ChatItem.MessageItem) {
+                   dispatchEvent(OneToOneChatViewModelEvent.AddMessageToReadList(chatItem.message,mainUser.id))
+               }
+           }
+
             delay(1000)
-
-            visibleItemsInfo.forEach { item ->
-                val chatItem = paginatedMessages[item.index]
-
-                chatItem?.let {
-                    if(chatItem is ChatItem.MessageItem) {
-                        dispatchEvent(OneToOneChatViewModelEvent.AddMessageToReadList(chatItem.message,mainUser.id))
-                    }
-                }
-            }
-
             dispatchEvent(OneToOneChatViewModelEvent.SetMessagesReadStatus(mainUser.id))
         }
     }
