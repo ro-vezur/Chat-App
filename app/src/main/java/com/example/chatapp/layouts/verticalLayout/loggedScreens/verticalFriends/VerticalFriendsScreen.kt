@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.FriendScreenTabs
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsUiState
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModelEvent
@@ -35,7 +36,7 @@ fun VerticalFriendsScreen(
                     ) {
                         Text(
                             modifier = Modifier
-                                .padding(vertical = 20.dp),
+                                .padding(vertical = 20.sdp),
                             text = tab.title,
                             style = MaterialTheme.typography.labelLarge
                         )

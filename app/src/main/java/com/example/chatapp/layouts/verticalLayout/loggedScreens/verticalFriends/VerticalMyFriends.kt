@@ -1,5 +1,6 @@
 package com.example.chatapp.layouts.verticalLayout.loggedScreens.verticalFriends
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,7 @@ fun VerticalMyFriendsScreen(
     friendsUiState: FriendsUiState,
     dispatchEvent: (FriendsViewModelEvent) -> Unit,
 ) {
+    val mainUser = LocalUser.current
 
     Column(
         modifier = Modifier
@@ -75,8 +77,9 @@ fun VerticalMyFriendsScreen(
 
                 is Resource.Success -> {
                     friendsUiState.myFriendsResult.data?.let { users ->
+                        Log.d("users",users.toString())
 
-                        val rememberUsersList by remember(friendsUiState.searchQuery) {
+                        val rememberUsersList by remember(friendsUiState.searchQuery,users) {
                             mutableStateOf(users.filter { it.name.contains(friendsUiState.searchQuery,true) })
                         }
 
@@ -159,9 +162,9 @@ private fun SearchedUserCard(
 
         Text(
             modifier = Modifier
-                .padding(horizontal = 15.sdp),
+                .padding(horizontal = 12.sdp),
             text = user.name,
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelMedium
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -179,7 +182,6 @@ private fun SearchedUserCard(
             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
             onClick = {
                 dispatchEvent(FriendsViewModelEvent.AddChat(listOf(mainUser.id,user.id)))
-            //    dispatchEvent(FriendsViewModelEvent.OnNavigate("chat/${user.id}"))
             }
         )
     }
