@@ -4,5 +4,8 @@ import com.example.chatapp.Dtos.chat.LocalChatInfo
 
 sealed class ChatsViewModelEvent {
     class NavigateTo(val route: String): ChatsViewModelEvent()
-    class FetchUserChats(val localChats: List<LocalChatInfo>): ChatsViewModelEvent()
+    class FetchUserChats(val userId: String,val localChats: List<LocalChatInfo>): ChatsViewModelEvent()
+    class UpdateSearchField(val query: String) : ChatsViewModelEvent() {
+
+    }
 }

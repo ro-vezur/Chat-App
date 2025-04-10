@@ -10,8 +10,8 @@ import com.example.chatapp.MESSAGES_PER_PAGE
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastReadMessageIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
-import com.example.chatapp.model.pagination.MessageUpdate
-import com.example.chatapp.model.pagination.MessagesPagingSource
+import com.example.chatapp.model.pagination.messagesPagingSource.MessageUpdate
+import com.example.chatapp.model.pagination.messagesPagingSource.MessagesPagingSource
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
