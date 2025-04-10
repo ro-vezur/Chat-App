@@ -30,6 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.chatapp.LocalUser
 import com.example.chatapp.differentScreensSupport.sdp
+import com.example.chatapp.helpers.navigation.singleClickNavigate
 import com.example.chatapp.ui.theme.ChatAppTheme
 
 @Composable
@@ -68,7 +69,7 @@ fun BottomNavigationBar(
                     indicatorColor = Color.Transparent
                 ),
                 selected = isSelected,
-                onClick = { navController.navigate(item.route) },
+                onClick = { navController.singleClickNavigate(item.route) },
                 alwaysShowLabel = false,
                 icon = {
                     BadgedBox(
