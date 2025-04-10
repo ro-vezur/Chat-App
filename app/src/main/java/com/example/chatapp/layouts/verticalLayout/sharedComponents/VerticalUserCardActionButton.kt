@@ -19,8 +19,8 @@ fun VerticalUseCardActionButton(
 ) {
     IconButton(
         modifier = Modifier
-            .padding(horizontal = 20.sdp)
-            .size(45.sdp),
+            .padding(horizontal = 12.sdp)
+            .size(40.sdp),
         colors = colors,
         onClick = onClick
     ) {

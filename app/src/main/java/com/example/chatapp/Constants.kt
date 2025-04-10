@@ -9,6 +9,7 @@ const val MESSAGES_DB = "messages"
 const val USERS_TYPING_IN_CHAT = "users typing"
 
 const val MESSAGES_PER_PAGE = 25
+const val USER_CHATS_PER_PAGE = 15L
 
 const val PERMISSIONS_PREFERENCES = "PERMISSIONS_PREFERENCES"
 

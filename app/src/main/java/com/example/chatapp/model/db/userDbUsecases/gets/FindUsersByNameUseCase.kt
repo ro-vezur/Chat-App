@@ -19,7 +19,8 @@ class FindUsersByNameUseCase @Inject constructor(
     suspend operator fun invoke(query: String): Flow<Resource<List<User>>> = flow {
         emit(Resource.Loading())
 
-        val usersDocuments =  usersDb.get().await()
+        val usersDocuments =  usersDb
+            .get().await()
         val users = usersDocuments.filter {
             it["name",String::class.java]?.contains(query,ignoreCase = false) == true &&
                     it["id",String::class.java] != getCurrentUserIdUseCase()

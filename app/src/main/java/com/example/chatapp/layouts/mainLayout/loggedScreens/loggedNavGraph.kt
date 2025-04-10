@@ -1,5 +1,6 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens
 
+import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -12,10 +13,12 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.chatapp.LocalUser
+import com.example.chatapp.helpers.navigation.singleClickNavigate
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.OneToOneChatScreen
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatViewModel
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.ChatsScreen
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsViewModel
+import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsViewModelEvent
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.FriendsScreen
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModel
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModelEvent
@@ -24,6 +27,7 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.requestsScre
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.settings.SettingsScreen
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.settings.settingsViewModel.SettingsViewModel
 import com.example.chatapp.navigation.ScreenRoutes
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 fun NavGraphBuilder.loggedNavGraph(
@@ -36,8 +40,10 @@ fun NavGraphBuilder.loggedNavGraph(
         composable<ScreenRoutes.LoggedScreens.ChatsRoute> {
             updateBottomBarState(true)
 
+            val mainUser = LocalUser.current
             val chatsViewModel: ChatsViewModel = hiltViewModel()
             val chatsUiState by chatsViewModel.chatsUiState.collectAsStateWithLifecycle()
+            val paginatedUserChats = chatsViewModel.paginatedUserChats.collectAsLazyPagingItems()
 
             LaunchedEffect(Unit) {
                 chatsViewModel.navigationEvents.collectLatest { route ->
@@ -47,9 +53,15 @@ fun NavGraphBuilder.loggedNavGraph(
                 }
             }
 
+            LaunchedEffect(key1 = mainUser.localChats) {
+                Log.d("main user local chats",mainUser.localChats.size.toString())
+                chatsViewModel.dispatchEvent(ChatsViewModelEvent.FetchUserChats(mainUser.id,mainUser.localChats))
+            }
+
             ChatsScreen(
                 chatsUiState = chatsUiState,
-                dispatchEvent = chatsViewModel::dispatchEvent
+                paginatedUserChats = paginatedUserChats,
+                dispatchEvent = chatsViewModel::dispatchEvent,
             )
         }
 
@@ -75,13 +87,12 @@ fun NavGraphBuilder.loggedNavGraph(
 
             LaunchedEffect(Unit) {
                 friendsViewModel.navigationEvents.collectLatest { route ->
-                    navController.navigate(route) {
-                        launchSingleTop = true
-                    }
+                    navController.singleClickNavigate(route)
                 }
             }
 
             LaunchedEffect(key1 = user.friends) {
+                delay(350)
                 friendsViewModel.dispatchEvent(FriendsViewModelEvent.FetchMyFriends(user.friends))
             }
 

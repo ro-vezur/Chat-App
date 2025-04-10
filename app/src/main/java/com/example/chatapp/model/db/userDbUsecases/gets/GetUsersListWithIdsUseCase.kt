@@ -16,15 +16,27 @@ class GetUsersListWithIdsUseCase @Inject constructor(
     private val usersDb  = fireStore.collection(USERS_DB_COLLECTION)
 
     suspend operator fun invoke(ids: List<String>): Flow<Resource<List<User>>> = flow {
-        emit(Resource.Loading())
-
-        val documents = usersDb.get().await().documents
+        val documents = usersDb
+            .whereIn("id",ids)
+            .get().await().documents
 
         emit(Resource.Success(
-            data = documents.filter { ids.contains(it.id) }.map { it.toObject(User::class.java)?: User() })
+            data = documents.map { it.toObject(User::class.java)?: User() })
         )
     }.catch { e ->
-        emit(Resource.Error(message = e.message.toString()))
+        e.printStackTrace()
+    }
+
+    suspend operator fun invoke(ids: List<String>,query: String): Flow<Resource<List<User>>> = flow {
+        val documents = usersDb
+            .whereIn("id",ids)
+            .get().await().documents
+
+        emit(Resource.Success(
+            data = documents.filter { (it["name"] as String).contains(query,true) }.map { it.toObject(User::class.java)?: User() })
+        )
+    }.catch { e ->
+        e.printStackTrace()
     }
 
 }

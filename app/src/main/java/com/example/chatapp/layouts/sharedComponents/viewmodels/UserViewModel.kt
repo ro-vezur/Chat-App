@@ -57,7 +57,7 @@ class UserViewModel @Inject constructor(
                 userStateListener?.remove()
             }
 
-            getAllUserChatsUnseenMessagesCount(isLogged = authState.currentUser != null)
+            getAllUserChatsUnseenMessagesCount(isLogged = authState.currentUser != null, userId = authState.currentUser?.uid ?: "")
 
             try {
                 userStateListener = usersDb.document(authState.currentUser?.uid.toString()).addSnapshotListener { document, error ->
@@ -73,9 +73,10 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    private fun getAllUserChatsUnseenMessagesCount(isLogged: Boolean) = viewModelScope.launch {
+    private fun getAllUserChatsUnseenMessagesCount(isLogged: Boolean,userId: String) = viewModelScope.launch {
         if(isLogged) {
-            getAllUserChatsUnseenMessagesCountUseCase(_user.value.id).collectLatest { messagesCount ->
+            getAllUserChatsUnseenMessagesCountUseCase(userId)
+                .collectLatest { messagesCount ->
                 _unseenMessagesCount.update { messagesCount }
             }
         }
