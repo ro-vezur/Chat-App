@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.AcceptFriendRequestUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.DeclineFriendRequestUseCase
+import com.example.chatapp.others.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,7 +46,7 @@ class FriendsRequestsViewModel @Inject constructor(
     }
 
     private fun fetchFriendRequests(ids: List<String>) = viewModelScope.launch {
-        getUsersListWithIdsUseCase(ids).collectLatest { result ->
+        getUsersListWithIdsUseCase(ids,_friendsRequestsUiState.value.searchQuery).collectLatest { result ->
             _friendsRequestsUiState.emit(
                 _friendsRequestsUiState.value.copy(
                     requestsResult = result
@@ -57,7 +58,8 @@ class FriendsRequestsViewModel @Inject constructor(
     private fun onSearchQueryChange(query: String) = viewModelScope.launch {
         _friendsRequestsUiState.emit(
             _friendsRequestsUiState.value.copy(
-                searchQuery = query
+                searchQuery = query,
+                requestsResult = Resource.Loading()
             )
         )
     }
