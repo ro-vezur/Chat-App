@@ -25,6 +25,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.cloudinary.android.MediaManager
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.layouts.sharedComponents.viewmodels.UserViewModel
 import com.example.chatapp.ui.theme.ChatAppTheme
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        initCloudinary()
         ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets -> insets }
 
         setContent {
@@ -100,6 +102,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun initCloudinary() {
+        val config = hashMapOf<String,String>()
+        config["cloud_name"] = cloudinaryEnvironmentVariable
+        config["api_key"] = cloudinaryApiKey
+        config["api_secret"] = cloudinaryApiSecret
+        MediaManager.init(this,config)
     }
 
     override fun onResume() {

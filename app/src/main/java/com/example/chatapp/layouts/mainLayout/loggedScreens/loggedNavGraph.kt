@@ -24,8 +24,7 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScree
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModelEvent
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.requestsScreen.FriendsRequestScreen
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.requestsScreen.requestsViewModel.FriendsRequestsViewModel
-import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.settings.SettingsScreen
-import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.settings.settingsViewModel.SettingsViewModel
+import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.settings.settingsNavGraph
 import com.example.chatapp.navigation.ScreenRoutes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -133,14 +132,8 @@ fun NavGraphBuilder.loggedNavGraph(
             }
         }
 
-        composable<ScreenRoutes.LoggedScreens.SettingsRoute> {
-            val settingsViewModel: SettingsViewModel = hiltViewModel()
-            val settingsUiState by settingsViewModel.settingsUiState.collectAsStateWithLifecycle()
-
-            SettingsScreen(
-                settingsUiState = settingsUiState,
-                dispatchEvent = settingsViewModel::dispatchEvent
-            )
-        }
+        settingsNavGraph(
+            navController = navController
+        )
     }
 }
