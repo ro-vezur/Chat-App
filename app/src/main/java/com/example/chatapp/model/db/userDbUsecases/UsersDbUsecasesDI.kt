@@ -9,6 +9,7 @@ import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCa
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.DeleteFriendUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.UpdateUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.AddFcmTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.friendRequest.AcceptFriendRequestUseCase
@@ -31,6 +32,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object UsersDbUsecasesDI {
+    @Provides
+    @Singleton
+    fun provideUpdateUserCase(
+        fireStore: FirebaseFirestore
+    ): UpdateUserUseCase = UpdateUserUseCase(fireStore)
 
     @Provides
     @Singleton
