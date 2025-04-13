@@ -3,6 +3,10 @@ package com.example.chatapp
 
 const val webClientId = BuildConfig.webClientID
 
+const val cloudinaryApiKey = BuildConfig.cloudinaryApiKey
+const val cloudinaryApiSecret = BuildConfig.cloudinaryApiSecret
+const val cloudinaryEnvironmentVariable = BuildConfig.cloudinaryEnvironmentVariable
+
 const val USERS_DB_COLLECTION = "users"
 const val CHATS_COLLECTION = "chats"
 const val MESSAGES_DB = "messages"
