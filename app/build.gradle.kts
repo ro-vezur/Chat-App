@@ -34,6 +34,24 @@ android {
             name = "webClientID",
             value = "\"${properties.getProperty("webClientID")}\""
         )
+
+        buildConfigField(
+            type = "String",
+            name = "cloudinaryApiKey",
+            value = "\"${properties.getProperty("cloudinaryApiKey")}\""
+        )
+
+        buildConfigField(
+            type = "String",
+            name = "cloudinaryApiSecret",
+            value = "\"${properties.getProperty("cloudinaryApiSecret")}\""
+        )
+
+        buildConfigField(
+            type = "String",
+            name = "cloudinaryEnvironmentVariable",
+            value = "\"${properties.getProperty("cloudinaryEnvironmentVariable")}\""
+        )
     }
 
     buildTypes {
@@ -131,4 +149,10 @@ dependencies {
 
     //firebase RTDB
     implementation(libs.firebase.rtdb)
+
+    //cloudinary lib
+    implementation(libs.cloudinary)
+
+    //image cropper
+    implementation(libs.imageCropper)
 }
