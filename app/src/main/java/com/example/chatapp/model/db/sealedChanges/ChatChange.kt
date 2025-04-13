@@ -1,4 +1,4 @@
-package com.example.chatapp.model.db.chatDb.observers.userChatsChanges
+package com.example.chatapp.model.db.sealedChanges
 
 import com.example.chatapp.Dtos.chat.Chat
 

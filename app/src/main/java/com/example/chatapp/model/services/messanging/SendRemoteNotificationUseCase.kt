@@ -1,7 +1,7 @@
 package com.example.chatapp.model.services.messanging
 
 import com.example.chatapp.Dtos.notification.SendNotificationDto
-import com.example.chatapp.model.apis.fcmApi.FcmApiInterface
+import com.example.chatapp.domain.FcmApiInterface
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
 import javax.inject.Inject
 

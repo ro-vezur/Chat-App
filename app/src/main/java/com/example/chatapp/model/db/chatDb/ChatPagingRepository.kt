@@ -10,7 +10,7 @@ import com.example.chatapp.MESSAGES_PER_PAGE
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastReadMessageIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
-import com.example.chatapp.model.pagination.messagesPagingSource.MessageUpdate
+import com.example.chatapp.model.db.sealedChanges.MessageChange
 import com.example.chatapp.model.pagination.messagesPagingSource.MessagesPagingSource
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
@@ -86,20 +86,20 @@ class ChatPagingRepository @Inject constructor(
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 if(!isInitialLoad) {
                     snapshot.getValue(Message::class.java)?.let { message ->
-                        trySend(MessageUpdate.Added(message))
+                        trySend(MessageChange.Added(message))
                     }
                 }
             }
 
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                 snapshot.getValue(Message::class.java)?.let { message ->
-                    trySend(MessageUpdate.Updated(message))
+                    trySend(MessageChange.Updated(message))
                 }
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
                 snapshot.getValue(Message::class.java)?.let { message ->
-                    trySend(MessageUpdate.Removed(message))
+                    trySend(MessageChange.Removed(message))
                 }
             }
 

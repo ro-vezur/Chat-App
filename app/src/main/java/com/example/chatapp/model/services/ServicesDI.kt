@@ -1,6 +1,6 @@
 package com.example.chatapp.model.services
 
-import com.example.chatapp.model.apis.fcmApi.FcmApiInterface
+import com.example.chatapp.domain.FcmApiInterface
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
 import com.example.chatapp.model.services.messanging.SendRemoteNotificationUseCase
 import dagger.Module

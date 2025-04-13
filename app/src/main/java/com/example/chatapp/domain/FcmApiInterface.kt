@@ -1,4 +1,4 @@
-package com.example.chatapp.model.apis.fcmApi
+package com.example.chatapp.domain
 
 import com.example.chatapp.Dtos.notification.SendNotificationDto
 import retrofit2.http.Body

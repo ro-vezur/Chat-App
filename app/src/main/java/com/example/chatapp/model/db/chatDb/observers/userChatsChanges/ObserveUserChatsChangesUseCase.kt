@@ -3,6 +3,7 @@ package com.example.chatapp.model.db.chatDb.observers.userChatsChanges
 import android.util.Log
 import com.example.chatapp.CHATS_COLLECTION
 import com.example.chatapp.Dtos.chat.Chat
+import com.example.chatapp.model.db.sealedChanges.ChatChange
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject

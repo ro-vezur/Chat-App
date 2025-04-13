@@ -10,14 +10,13 @@ import androidx.paging.map
 import com.example.chatapp.Dtos.chat.ChatUI
 import com.example.chatapp.Dtos.chat.LocalChatInfo
 import com.example.chatapp.Dtos.chat.chatType.ChatType
-import com.example.chatapp.model.db.chatDb.observers.userChatsChanges.ChatChange
 import com.example.chatapp.model.db.chatDb.observers.userChatsChanges.ObserveUserChatsChangesUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
+import com.example.chatapp.model.db.sealedChanges.ChatChange
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserPaginatedChatsUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +35,6 @@ class ChatsViewModel @Inject constructor(
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
     private val getUserUseCase: GetUserUseCase,
     private val getChatMessageUseCase: GetChatMessageUseCase,
-
     ): ViewModel() {
 
     private val _navigationEvents = MutableSharedFlow<String>()
@@ -51,7 +49,6 @@ class ChatsViewModel @Inject constructor(
     val paginatedUserChats: StateFlow<PagingData<ChatUI>> = _paginatedUserChats.asStateFlow()
 
     init {
-        Log.d("init chats VM","INIT!")
         observeUserChatChanges()
     }
 
@@ -92,7 +89,6 @@ class ChatsViewModel @Inject constructor(
         }
     }
 
-    @OptIn(FlowPreview::class)
     private fun observeUserChatChanges() = viewModelScope.launch {
         val userId = getCurrentUserIdUseCase()
 
@@ -121,12 +117,6 @@ class ChatsViewModel @Inject constructor(
                         chat.usersTyping.size > 1 -> "${chat.usersTyping.filter { it != userId }.size} are Typing"
                         else -> null
                     }
-
-                //    Log.d("userLastReadMessageId",userLastReadMessageId)
-                //    Log.d("lastReadMessageObject",lastReadMessageObject.toString())
-               //     Log.d("oppositeUserId",oppositeUserId)
-                    Log.d("opposite user",oppositeUser.toString())
-                 //   Log.d("typingUsersText",typingUsersText.toString())
 
                     val chatUI = ChatUI(
                         id = chat.id,

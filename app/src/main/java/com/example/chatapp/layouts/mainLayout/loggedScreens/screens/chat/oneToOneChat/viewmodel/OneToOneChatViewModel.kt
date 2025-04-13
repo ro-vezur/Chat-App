@@ -28,7 +28,7 @@ import com.example.chatapp.model.db.messagesDbUseCases.posts.UpdateUserLastSeenM
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddLocalChatInfoUseCase
-import com.example.chatapp.model.pagination.messagesPagingSource.MessageUpdate
+import com.example.chatapp.model.db.sealedChanges.MessageChange
 import com.example.chatapp.model.services.messanging.SendRemoteNotificationUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -95,10 +95,10 @@ class OneToOneChatViewModel @AssistedInject constructor(
             observeTypingUsers()
             chatPagingRepository.messagesListener(chatId).collectLatest { messageUpdate ->
                 when(messageUpdate) {
-                    is MessageUpdate.Added -> {
+                    is MessageChange.Added -> {
                         addedMessages.update { it + messageUpdate.message }
                     }
-                    is MessageUpdate.Removed -> {
+                    is MessageChange.Removed -> {
                         removedMessages.update { it + messageUpdate.message }
                         if(addedMessages.value.map { it.id }.contains(messageUpdate.message.id)) {
                             addedMessages.update { messagesToUpdate -> messagesToUpdate.dropWhile { it.id ==  messageUpdate.message.id} }
@@ -107,7 +107,7 @@ class OneToOneChatViewModel @AssistedInject constructor(
                             updatedMessages.update { messagesToUpdate -> messagesToUpdate.dropWhile { it.id ==  messageUpdate.message.id} }
                         }
                     }
-                    is MessageUpdate.Updated -> {
+                    is MessageChange.Updated -> {
                         updatedMessages.update { it + messageUpdate.message }
                     }
                 }
