@@ -62,7 +62,7 @@ fun ChatsScreen(
                         .padding(horizontal = 6.sdp),
                     verticalArrangement = Arrangement.spacedBy(10.sdp)
                 ) {
-                    val sortedChats = paginatedUserChats.itemSnapshotList.mapNotNull { it }.sortedByDescending { it.lastUpdateTimestamp }
+                    val sortedChats = paginatedUserChats.itemSnapshotList.mapNotNull { it }.sortedByDescending { it.lastMessage.sentTimeStamp }
 
                     item { }
 

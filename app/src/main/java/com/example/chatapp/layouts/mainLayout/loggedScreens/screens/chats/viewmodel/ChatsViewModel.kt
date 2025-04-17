@@ -1,6 +1,5 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -8,7 +7,6 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import androidx.paging.map
 import com.example.chatapp.Dtos.chat.ChatUI
-import com.example.chatapp.Dtos.chat.LocalChatInfo
 import com.example.chatapp.Dtos.chat.chatType.ChatType
 import com.example.chatapp.model.db.chatDb.observers.userChatsChanges.ObserveUserChatsChangesUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
@@ -50,11 +48,11 @@ class ChatsViewModel @Inject constructor(
 
     init {
         observeUserChatChanges()
+        fetchChats()
     }
 
     fun dispatchEvent(event: ChatsViewModelEvent) = viewModelScope.launch {
         when(event) {
-            is ChatsViewModelEvent.FetchUserChats -> fetchChats(event.userId,event.localChats)
             is ChatsViewModelEvent.NavigateTo -> navigateTo(event.route)
             is ChatsViewModelEvent.UpdateSearchField -> updateSearchQuery(event.query)
         }
@@ -64,7 +62,10 @@ class ChatsViewModel @Inject constructor(
         _navigationEvents.emit(route)
     }
 
-    private fun fetchChats(userId: String,localChats: List<LocalChatInfo> ) = viewModelScope.launch {
+    private fun fetchChats( ) = viewModelScope.launch {
+        val userId = getCurrentUserIdUseCase()
+        val user = getUserUseCase(userId)
+        val localChats = user?.localChats ?: emptyList()
         val allChats = getUserPaginatedChatsUseCase(userId,localChats).cachedIn(viewModelScope)
 
         combine(allChats,updatedChats,_chatsUiState) { all, updated, chatsUiState  ->
@@ -80,7 +81,6 @@ class ChatsViewModel @Inject constructor(
             .collectLatest { pagingData ->
                 _paginatedUserChats.emit(pagingData)
             }
-
     }
 
     private fun updateSearchQuery(query: String) = viewModelScope.launch {
@@ -137,7 +137,6 @@ class ChatsViewModel @Inject constructor(
                         if(stateIds.contains(chatUI.id)) {
                             val chatIndex = stateIds.indexOf(stateIds.find { it == chatUI.id })
                             mutableState[chatIndex] = chatUI
-                            Log.d("state",mutableState[chatIndex].typingUsersText.toString())
                             mutableState
                         } else {
                             (state + chatUI).toMutableList()
