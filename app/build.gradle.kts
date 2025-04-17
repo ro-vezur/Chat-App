@@ -43,14 +43,8 @@ android {
 
         buildConfigField(
             type = "String",
-            name = "cloudinaryApiSecret",
-            value = "\"${properties.getProperty("cloudinaryApiSecret")}\""
-        )
-
-        buildConfigField(
-            type = "String",
-            name = "cloudinaryEnvironmentVariable",
-            value = "\"${properties.getProperty("cloudinaryEnvironmentVariable")}\""
+            name = "cloudName",
+            value = "\"${properties.getProperty("cloudName")}\""
         )
     }
 

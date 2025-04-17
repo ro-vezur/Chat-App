@@ -27,7 +27,7 @@ dataStore = "1.1.2"
 accompanist-permissions = "0.33.1-alpha"
 androidx-paging = "3.3.6"
 cloudinary = "3.0.2"
-imageCropper = "4.0.0"
+imageCropper = "4.5.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -65,7 +65,7 @@ androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.r
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging" }
 firebase-RTDB = { module = "com.google.firebase:firebase-database-ktx", version.ref = "firebaseRTDB" }
 cloudinary = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinary"}
-imageCropper = { module = "com.github.CanHub:Android-Image-Cropper", version.ref = "imageCropper" }
+imageCropper = { module = "com.vanniktech:android-image-cropper", version.ref = "imageCropper" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
