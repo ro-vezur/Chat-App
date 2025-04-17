@@ -1,6 +1,5 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens
 
-import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -18,7 +17,6 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOn
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatViewModel
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.ChatsScreen
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsViewModel
-import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsViewModelEvent
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.FriendsScreen
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModel
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModelEvent
@@ -50,11 +48,6 @@ fun NavGraphBuilder.loggedNavGraph(
                         launchSingleTop = true
                     }
                 }
-            }
-
-            LaunchedEffect(key1 = mainUser.localChats) {
-                Log.d("main user local chats",mainUser.localChats.size.toString())
-                chatsViewModel.dispatchEvent(ChatsViewModelEvent.FetchUserChats(mainUser.id,mainUser.localChats))
             }
 
             ChatsScreen(
@@ -133,7 +126,8 @@ fun NavGraphBuilder.loggedNavGraph(
         }
 
         settingsNavGraph(
-            navController = navController
+            navController = navController,
+            showBottomBar = updateBottomBarState
         )
     }
 }

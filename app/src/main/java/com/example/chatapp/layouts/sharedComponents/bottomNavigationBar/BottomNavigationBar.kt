@@ -41,7 +41,7 @@ fun BottomNavigationBar(
     val user = LocalUser.current
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    var selectedItem by remember { mutableStateOf(BottomNavigationBarItems.CHATS) }
+    var selectedItem by remember { mutableStateOf<BottomNavigationBarItems?>(null) }
 
     LaunchedEffect(key1 = navBackStackEntry) {
         val currentRoute = navBackStackEntry?.destination?.route.toString()

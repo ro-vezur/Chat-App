@@ -106,9 +106,8 @@ class MainActivity : ComponentActivity() {
 
     private fun initCloudinary() {
         val config = hashMapOf<String,String>()
-        config["cloud_name"] = cloudinaryEnvironmentVariable
+        config["cloud_name"] = cloudName
         config["api_key"] = cloudinaryApiKey
-        config["api_secret"] = cloudinaryApiSecret
         MediaManager.init(this,config)
     }
 
