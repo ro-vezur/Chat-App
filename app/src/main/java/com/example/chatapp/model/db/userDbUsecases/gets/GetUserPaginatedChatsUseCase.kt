@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.chatapp.CHATS_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.ChatUI
 import com.example.chatapp.Dtos.chat.LocalChatInfo
 import com.example.chatapp.USER_CHATS_PER_PAGE
@@ -26,8 +26,7 @@ class GetUserPaginatedChatsUseCase @Inject constructor(
 
         Log.d("ids",contacts.map { it.id }.toString())
 
-        val query = firestore.collection(CHATS_COLLECTION)
-            //.whereArrayContains("users",userId)
+        val query = firestore.collection(CHATS_DB)
             .whereIn("id",contacts.map { it.id })
             .orderBy("lastUpdateTimestamp",Query.Direction.DESCENDING)
 

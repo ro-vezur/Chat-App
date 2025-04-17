@@ -1,6 +1,6 @@
 package com.example.chatapp.model.db.messagesDbUseCases.gets
 
-import com.example.chatapp.CHATS_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Chat
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
@@ -11,7 +11,7 @@ import javax.inject.Inject
 class GetAllUserChatsUnseenMessagesCountUseCase @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
-    private val chatsCollection = firestore.collection(CHATS_COLLECTION)
+    private val chatsCollection = firestore.collection(CHATS_DB)
 
     operator fun invoke(userId: String) = callbackFlow<Int> {
         val userChats = chatsCollection

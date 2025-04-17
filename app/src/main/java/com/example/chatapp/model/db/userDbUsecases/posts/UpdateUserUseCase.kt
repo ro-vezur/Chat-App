@@ -1,6 +1,7 @@
 package com.example.chatapp.model.db.userDbUsecases.posts
 
-import com.example.chatapp.CHATS_COLLECTION
+import com.example.chatapp.CHATS_DB
+import com.example.chatapp.Dtos.chat.chatType.ChatType
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USERS_DB_COLLECTION
 import com.example.chatapp.helpers.time.getCurrentTimeInMillis
@@ -24,10 +25,12 @@ class UpdateUserUseCase @Inject constructor(
                 }
             }.await()
 
-            val chatsQuery = firestore.collection(CHATS_COLLECTION).whereArrayContains("users",user.id)
+            val chatsQuery = firestore.collection(CHATS_DB)
+                .whereArrayContains("users",user.id)
+                .whereEqualTo("type",ChatType.USER)
 
             chatsQuery.get().await().documents.forEach { documentSnapshot ->
-                val chatRef = firestore.collection(CHATS_COLLECTION).document(documentSnapshot.id)
+                val chatRef = firestore.collection(CHATS_DB).document(documentSnapshot.id)
                 batch.update(chatRef,"lastUpdateTimestamp", getCurrentTimeInMillis())
             }
 

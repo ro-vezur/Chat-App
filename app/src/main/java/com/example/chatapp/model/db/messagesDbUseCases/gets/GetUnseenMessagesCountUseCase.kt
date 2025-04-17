@@ -1,6 +1,6 @@
 package com.example.chatapp.model.db.messagesDbUseCases.gets
 
-import com.example.chatapp.CHATS_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.MESSAGES_DB
 import com.google.firebase.database.DatabaseReference
@@ -13,7 +13,7 @@ class GetUnseenMessagesCountUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(chatId: String,lastReadMessage: Message,mainUserId: String,): Int {
         return try {
-            val chatRef = db.child(CHATS_COLLECTION).child(chatId).child(MESSAGES_DB).orderByChild("sentTimeStamp")
+            val chatRef = db.child(CHATS_DB).child(chatId).child(MESSAGES_DB).orderByChild("sentTimeStamp")
                 .startAfter(lastReadMessage.sentTimeStamp?.toDouble() ?: 0.0)
 
             val dataSnapshot = chatRef.get().await()

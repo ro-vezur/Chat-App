@@ -1,7 +1,7 @@
 package com.example.chatapp.model.db.chatDb.observers.userChatsChanges
 
 import android.util.Log
-import com.example.chatapp.CHATS_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.model.db.sealedChanges.ChatChange
 import com.google.firebase.firestore.DocumentChange
@@ -17,7 +17,7 @@ class ObserveUserChatsChangesUseCase @Inject constructor(
     operator fun invoke(
         userId: String,
     ) = callbackFlow<ChatChange> {
-        val chatsListener = firestore.collection(CHATS_COLLECTION)
+        val chatsListener = firestore.collection(CHATS_DB)
             .whereArrayContains("users",userId)
             .addSnapshotListener { snapshot, error ->
                 if(error != null) {

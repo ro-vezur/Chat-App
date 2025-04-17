@@ -1,4 +1,4 @@
-package com.example.chatapp.domain
+package com.example.chatapp.domain.apis
 
 import com.example.chatapp.Dtos.notification.SendNotificationDto
 import retrofit2.http.Body

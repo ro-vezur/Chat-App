@@ -1,6 +1,6 @@
 package com.example.chatapp.model.db.chatDb.usecases.posts.usersTyping
 
-import com.example.chatapp.CHATS_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.USERS_TYPING_IN_CHAT
 import com.google.firebase.database.DatabaseReference
@@ -16,14 +16,14 @@ class AddUserTypingUseCase @Inject constructor(
     suspend operator fun invoke(chatId: String,userId: String) {
         if(chatId.isNotBlank()) {
             val typingUserRef =
-                db.child(CHATS_COLLECTION).child(chatId).child(USERS_TYPING_IN_CHAT).child(userId)
+                db.child(CHATS_DB).child(chatId).child(USERS_TYPING_IN_CHAT).child(userId)
             val dataSnapshot = typingUserRef.get().await()
 
             if (!dataSnapshot.exists()) {
                 typingUserRef.setValue(userId)
             }
 
-            val chatRef = firestore.collection(CHATS_COLLECTION).document(chatId)
+            val chatRef = firestore.collection(CHATS_DB).document(chatId)
             firestore.runTransaction { transaction ->
                 val chatObject = transaction[chatRef].toObject<Chat>()
 

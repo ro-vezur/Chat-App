@@ -1,7 +1,7 @@
 package com.example.chatapp.model.db.chatDb.usecases.posts.usersTyping
 
 import android.util.Log
-import com.example.chatapp.CHATS_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.USERS_TYPING_IN_CHAT
 import com.google.firebase.database.DatabaseReference
@@ -17,14 +17,14 @@ class RemoveUserTypingUseCase @Inject constructor(
     suspend operator fun invoke(chatId: String, userId: String) {
         Log.d("chat id",chatId)
         if(chatId.isNotBlank()) {
-            val typingUserRef = db.child(CHATS_COLLECTION).child(chatId).child(USERS_TYPING_IN_CHAT).child(userId)
+            val typingUserRef = db.child(CHATS_DB).child(chatId).child(USERS_TYPING_IN_CHAT).child(userId)
             val dataSnapshot = typingUserRef.get().await()
 
             if(dataSnapshot.exists()) {
                 typingUserRef.removeValue()
             }
 
-            val chatRef = firestore.collection(CHATS_COLLECTION).document(chatId)
+            val chatRef = firestore.collection(CHATS_DB).document(chatId)
             firestore.runTransaction { transaction ->
                 val chatObject = transaction[chatRef].toObject<Chat>()
 

@@ -3,7 +3,7 @@ package com.example.chatapp.model.db.chatDb
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.chatapp.CHATS_COLLECTION
+import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.MESSAGES_DB
 import com.example.chatapp.MESSAGES_PER_PAGE
@@ -52,7 +52,7 @@ class ChatPagingRepository @Inject constructor(
     }
 
     private fun createPagingSource(chatId: String,lastReadMessage: Message?): MessagesPagingSource {
-        val query =  db.child(CHATS_COLLECTION).child(chatId).child(MESSAGES_DB).orderByChild("sentTimeStamp")
+        val query =  db.child(CHATS_DB).child(chatId).child(MESSAGES_DB).orderByChild("sentTimeStamp")
 
         pagingSource = MessagesPagingSource(
             query = query,
@@ -64,7 +64,7 @@ class ChatPagingRepository @Inject constructor(
     }
 
     fun messagesListener(chatId: String) = callbackFlow {
-        val chatRef = db.child(CHATS_COLLECTION).child(chatId).child(MESSAGES_DB)
+        val chatRef = db.child(CHATS_DB).child(chatId).child(MESSAGES_DB)
 
         var isInitialLoad = true
         val processedMessagesIds = mutableListOf<String>()

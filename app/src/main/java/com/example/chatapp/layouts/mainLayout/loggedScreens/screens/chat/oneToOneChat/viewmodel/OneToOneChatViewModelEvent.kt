@@ -6,11 +6,14 @@ import com.example.chatapp.Dtos.chat.Message
 sealed class OneToOneChatViewModelEvent {
     class AddLocalChatInfo(val userId: String,val localChatInfo: LocalChatInfo): OneToOneChatViewModelEvent()
     class SendMessage(val message: Message): OneToOneChatViewModelEvent()
-    class OnEnterQueryChange(val query: String): OneToOneChatViewModelEvent()
+    class ChangeSendMessageText(val query: String): OneToOneChatViewModelEvent()
     class AddMessageToReadList(val message: Message, val userId: String): OneToOneChatViewModelEvent()
     data object ClearMessagesReadList: OneToOneChatViewModelEvent()
     class SetMessagesReadStatus(val userId: String): OneToOneChatViewModelEvent()
     class SetUnseenMessagesCount(val userId: String): OneToOneChatViewModelEvent()
     class AddUserTyping(val chatId: String,val userId: String): OneToOneChatViewModelEvent()
     class RemoveUserTyping(val chatId: String,val userId: String): OneToOneChatViewModelEvent()
+    class DeleteMessage(val messageId: String,val chatId: String): OneToOneChatViewModelEvent()
+    class ConfirmMessageChanges(val newMessage: Message): OneToOneChatViewModelEvent()
+    class ChangeEditModeState(val message: Message?): OneToOneChatViewModelEvent()
 }
