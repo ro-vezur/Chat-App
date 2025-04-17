@@ -1,8 +1,10 @@
 package com.example.chatapp.model.apis
 
-import com.example.chatapp.domain.FcmApiInterface
+import com.example.chatapp.BASE_API_URL
 import com.example.chatapp.domain.MediaInterface
-import com.example.chatapp.model.BASE_URL
+import com.example.chatapp.domain.apis.FcmApiInterface
+import com.example.chatapp.domain.apis.MediaApiInterface
+import com.example.chatapp.model.apis.apisUsecases.DeleteImageUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,8 +19,18 @@ object ApisDI {
 
     @Provides
     @Singleton
+    fun providesDeleteImageUseCase(mediaApiInterface: MediaApiInterface) = DeleteImageUseCase(mediaApiInterface)
+
+    @Provides
+    @Singleton
     fun providesMediaInterface(): MediaInterface {
         return MediaImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMediaApiInterface(retrofit: Retrofit): MediaApiInterface {
+        return retrofit.create(MediaApiInterface::class.java)
     }
 
     @Provides
@@ -31,7 +43,7 @@ object ApisDI {
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BASE_API_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

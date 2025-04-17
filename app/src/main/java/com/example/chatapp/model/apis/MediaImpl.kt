@@ -14,7 +14,10 @@ class MediaImpl @Inject constructor(): MediaInterface {
 
     override fun uploadImageToServer(uri: Uri,onSuccess: (imageUrl: String) -> Unit) {
 
-        MediaManager.get().upload(uri).callback(object : UploadCallback {
+        MediaManager.get()
+            .upload(uri)
+            .unsigned("images")
+            .callback(object : UploadCallback {
             override fun onStart(requestId: String?) {
             }
 
