@@ -5,6 +5,8 @@ import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCas
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastReadMessageIdUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetUnseenMessagesCountUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.AddMessageUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.posts.DeleteMessageUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.posts.EditMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.SetMessagesReadStatusUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.UpdateUserLastSeenMessageIdUseCase
 import com.google.firebase.database.DatabaseReference
@@ -18,6 +20,14 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object MessagesDbUsecasesDI {
+
+    @Provides
+    @Singleton
+    fun provideEditMessageUseCase(fireStore: FirebaseFirestore,db: DatabaseReference) = EditMessageUseCase(fireStore,db)
+
+    @Provides
+    @Singleton
+    fun provideDeleteMessageUseCase(fireStore: FirebaseFirestore, db: DatabaseReference) = DeleteMessageUseCase(fireStore,db)
 
     @Provides
     @Singleton

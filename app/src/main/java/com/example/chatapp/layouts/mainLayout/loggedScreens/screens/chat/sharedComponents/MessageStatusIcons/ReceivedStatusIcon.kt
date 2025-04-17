@@ -2,9 +2,9 @@ package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.shared
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import com.example.chatapp.R
 import com.example.chatapp.differentScreensSupport.sdp
@@ -16,6 +16,6 @@ fun ReceivedStatusIcon() {
             .size(15.sdp),
         painter = painterResource(id = R.drawable.double_check),
         contentDescription = "Check",
-        tint = MaterialTheme.colorScheme.surface
+        tint = Color.White
     )
 }

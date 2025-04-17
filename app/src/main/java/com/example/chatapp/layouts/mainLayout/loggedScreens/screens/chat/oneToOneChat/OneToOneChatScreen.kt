@@ -2,6 +2,8 @@ package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToO
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +14,6 @@ import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
@@ -45,6 +46,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,6 +70,8 @@ import com.example.chatapp.helpers.time.getDateFromMillis
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatUiState
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatViewModelEvent
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.DateHeader
+import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageDropDownMenu
+import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageDropDownMenu.MessageDropDownMenuButtonAction
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.CheckedStatusIcon
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.NoneStatusIcon
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.ReceivedStatusIcon
@@ -214,10 +218,17 @@ fun OneToOneChatScreen(
     LaunchedEffect(key1 = paginatedMessages.itemSnapshotList.firstOrNull()) {
         if(paginatedMessages.itemCount != 0 && isCheckingLastMessages) {
            for (index in 0..2) {
-               val chatItem = paginatedMessages[index]
+               if(paginatedMessages.itemCount > index) {
+                   val chatItem = paginatedMessages[index]
 
-               if(chatItem is ChatItem.MessageItem) {
-                   dispatchEvent(OneToOneChatViewModelEvent.AddMessageToReadList(chatItem.message,mainUser.id))
+                   if (chatItem is ChatItem.MessageItem) {
+                       dispatchEvent(
+                           OneToOneChatViewModelEvent.AddMessageToReadList(
+                               chatItem.message,
+                               mainUser.id
+                           )
+                       )
+                   }
                }
            }
 
@@ -344,8 +355,6 @@ fun OneToOneChatScreen(
                 ) {
                     val itemCount = paginatedMessages.itemCount
 
-
-
                     items(
                         count = itemCount,
                         key = paginatedMessages.itemKey { item -> when(item) {
@@ -380,7 +389,7 @@ fun OneToOneChatScreen(
                                     MyMessageCard(
                                         message = chatItem.message,
                                         oppositeUser = chatUiState.user,
-                                        isPreviousMessageBySameUser = isPreviousMessageBySameUser
+                                        dispatchEvent = dispatchEvent
                                     )
                                 } else {
                                     OppositeUserMessageCard(
@@ -435,11 +444,11 @@ fun OneToOneChatScreen(
                     .fillMaxWidth()
                     .navigationBarsPadding()
                     .imePadding()
-                    .heightIn(65.sdp, 250.sdp)
                     .background(MaterialTheme.colorScheme.tertiary),
-                value = sendMessageText,
-                onValueChange = { query ->
-                    dispatchEvent(OneToOneChatViewModelEvent.OnEnterQueryChange(query))
+                typedText = sendMessageText,
+                messageToEdit = chatUiState.messageToEdit,
+                changeSendMessageText = { query ->
+                    dispatchEvent(OneToOneChatViewModelEvent.ChangeSendMessageText(query))
                 },
                 sendMessage = { message ->
                     dispatchEvent(OneToOneChatViewModelEvent.SendMessage(message))
@@ -448,6 +457,9 @@ fun OneToOneChatScreen(
                             lazyListState.animateScrollToItem(0)
                         }
                     }
+                },
+                editMessage = { message ->
+                    dispatchEvent(OneToOneChatViewModelEvent.ConfirmMessageChanges(message))
                 },
                 addLocalChat = {
                     val localChatInfo = LocalChatInfo(
@@ -464,7 +476,8 @@ fun OneToOneChatScreen(
                     } else {
                         dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,mainUser.id))
                     }
-                }
+                },
+                changeMessageToEdit = { messageToEdit -> dispatchEvent(OneToOneChatViewModelEvent.ChangeEditModeState(messageToEdit)) }
             )
         }
     }
@@ -475,61 +488,119 @@ private fun MyMessageCard(
     modifier: Modifier = Modifier,
     message: Message,
     oppositeUser: User,
-    isPreviousMessageBySameUser: Boolean,
+    dispatchEvent: (OneToOneChatViewModelEvent) -> Job,
 ) {
     val mainUser = LocalUser.current
 
+    val interactionSource = remember { MutableInteractionSource() }
+    var isDropDownMenuExpanded by remember { mutableStateOf(false) }
+
     Box(
         modifier = modifier
-            .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 0.sdp, start = 80.sdp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(start = 80.sdp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                role = Role.DropdownList
+            ) {
+                isDropDownMenuExpanded = true
+            },
         contentAlignment = Alignment.CenterEnd,
     ) {
-        Column (
-            modifier = Modifier
-                .padding(horizontal = 6.sdp)
-                .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(
-                        topStart = 10.sdp,
-                        topEnd = 0.sdp,
-                        bottomStart = 10.sdp,
-                        bottomEnd = 10.sdp,
+        Box(modifier = Modifier){
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 6.sdp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(
+                            topStart = 10.sdp,
+                            topEnd = 0.sdp,
+                            bottomStart = 10.sdp,
+                            bottomEnd = 10.sdp,
+                        )
                     )
-                )
-                .padding(12.sdp),
-            verticalArrangement = Arrangement.spacedBy(4.sdp),
-        ) {
-            Text(
-                modifier = Modifier
-                    .padding(start = 4.sdp),
-                text = message.content,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Row (
-                modifier = Modifier
-                    .padding(end = 2.sdp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.Bottom
+                    .padding(12.sdp),
+                verticalArrangement = Arrangement.spacedBy(4.sdp),
             ) {
-
                 Text(
-                    text = message.sentTimeStamp?.let { getDateFromMillis(message.sentTimeStamp,HH_MM) } ?: "",
+                    modifier = Modifier
+                        .padding(start = 4.sdp),
+                    text = message.content,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                
-                Spacer(modifier = Modifier.width(5.sdp))
 
-                when {
-                    message.seenBy.contains(oppositeUser.id) -> { CheckedStatusIcon() }
-                    oppositeUser.onlineStatus.devices.isNotEmpty() -> { ReceivedStatusIcon() }
-                    oppositeUser.blockedUsers.contains(mainUser.id) -> { NoneStatusIcon() }
-                    else -> { NoneStatusIcon() }
+                Row(
+                    modifier = Modifier
+                        .padding(end = 2.sdp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+
+                    if(message.edited) {
+                        Text(
+                            text = "Edited",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        
+                        Spacer(modifier = Modifier.width(5.sdp))
+                    }
+                    
+                    Text(
+                        text = message.sentTimeStamp?.let {
+                            getDateFromMillis(
+                                message.sentTimeStamp,
+                                HH_MM
+                            )
+                        } ?: "",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Spacer(modifier = Modifier.width(5.sdp))
+
+                    when {
+                        message.seenBy.contains(oppositeUser.id) -> {
+                            CheckedStatusIcon()
+                        }
+
+                        oppositeUser.onlineStatus.devices.isNotEmpty() -> {
+                            ReceivedStatusIcon()
+                        }
+
+                        oppositeUser.blockedUsers.contains(mainUser.id) -> {
+                            NoneStatusIcon()
+                        }
+
+                        else -> {
+                            NoneStatusIcon()
+                        }
+                    }
                 }
             }
+
+            MessageDropDownMenu(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter),
+                isExpanded = isDropDownMenuExpanded,
+                isMyMessage = true,
+                changeExpandedState = { isDropDownMenuExpanded = it },
+                dispatchAction = { action ->
+                    when (action) {
+                        MessageDropDownMenuButtonAction.DELETE -> {
+                            dispatchEvent(OneToOneChatViewModelEvent.DeleteMessage(message.id,message.chatId))
+                        }
+
+                        MessageDropDownMenuButtonAction.EDIT -> {
+                            dispatchEvent(OneToOneChatViewModelEvent.ChangeEditModeState(message))
+                            dispatchEvent(OneToOneChatViewModelEvent.ChangeSendMessageText(message.content))
+                        }
+                    }
+                }
+            )
         }
     }
 }
@@ -567,7 +638,7 @@ private fun OppositeUserMessageCard(
             modifier = Modifier
                 .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 0.sdp)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(
                         topStart = if (isPreviousMessageBySameUser) 10.sdp else 0.sdp,
                         topEnd = 10.sdp,
@@ -610,7 +681,7 @@ private fun previewChatScreen() {
     ) {
         OneToOneChatScreen(
             chatUiState = OneToOneChatUiState(
-                user = User(name = "Tester ALLAHU AKBAR SYRIA ALAHU"),
+                user = User(name = "Tester"),
             ),
             sendMessageText = "",
             paginatedMessages = flowOf(PagingData.from(fakeMessages)).collectAsLazyPagingItems(),

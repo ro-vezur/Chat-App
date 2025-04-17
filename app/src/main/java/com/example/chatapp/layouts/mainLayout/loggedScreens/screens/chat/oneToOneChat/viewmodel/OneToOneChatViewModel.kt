@@ -23,12 +23,14 @@ import com.example.chatapp.model.db.chatDb.usecases.posts.usersTyping.RemoveUser
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetUnseenMessagesCountUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.AddMessageUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.posts.DeleteMessageUseCase
+import com.example.chatapp.model.db.messagesDbUseCases.posts.EditMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.SetMessagesReadStatusUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.UpdateUserLastSeenMessageIdUseCase
+import com.example.chatapp.model.db.sealedChanges.MessageChange
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddLocalChatInfoUseCase
-import com.example.chatapp.model.db.sealedChanges.MessageChange
 import com.example.chatapp.model.services.messanging.SendRemoteNotificationUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -62,6 +64,8 @@ class OneToOneChatViewModel @AssistedInject constructor(
     private val observeTypingUsersUseCase: ObserveTypingUsersUseCase,
     private val sendRemoteNotificationUseCase: SendRemoteNotificationUseCase,
     private val getUserUseCase: GetUserUseCase,
+    private val deleteMessageUseCase: DeleteMessageUseCase,
+    private val editMessageUseCase: EditMessageUseCase,
 ): ViewModel() {
 
     @AssistedFactory
@@ -101,10 +105,18 @@ class OneToOneChatViewModel @AssistedInject constructor(
                     is MessageChange.Removed -> {
                         removedMessages.update { it + messageUpdate.message }
                         if(addedMessages.value.map { it.id }.contains(messageUpdate.message.id)) {
-                            addedMessages.update { messagesToUpdate -> messagesToUpdate.dropWhile { it.id ==  messageUpdate.message.id} }
+                            addedMessages.update { messagesToUpdate ->
+                                val mutableState = messagesToUpdate.toMutableList()
+                                mutableState.removeAll { it.id == messageUpdate.message.id }
+                                mutableState
+                            }
                         }
                         if(updatedMessages.value.map { it.id }.contains(messageUpdate.message.id)) {
-                            updatedMessages.update { messagesToUpdate -> messagesToUpdate.dropWhile { it.id ==  messageUpdate.message.id} }
+                            updatedMessages.update { messagesToUpdate ->
+                                val mutableState = messagesToUpdate.toMutableList()
+                                mutableState.removeAll { it.id == messageUpdate.message.id }
+                                mutableState
+                            }
                         }
                     }
                     is MessageChange.Updated -> {
@@ -180,7 +192,7 @@ class OneToOneChatViewModel @AssistedInject constructor(
     fun dispatchEvent(event: OneToOneChatViewModelEvent) = viewModelScope.launch {
         when(event) {
             is OneToOneChatViewModelEvent.SendMessage -> sendMessage(event.message)
-            is OneToOneChatViewModelEvent.OnEnterQueryChange -> onEnterQueryChange(event.query)
+            is OneToOneChatViewModelEvent.ChangeSendMessageText -> onEnterQueryChange(event.query)
             is OneToOneChatViewModelEvent.AddLocalChatInfo -> addLocalChatInfo(event.userId,event.localChatInfo)
             is OneToOneChatViewModelEvent.AddMessageToReadList -> addMessageReadList(event.message,event.userId)
             OneToOneChatViewModelEvent.ClearMessagesReadList -> clearMessagesReadList()
@@ -188,6 +200,9 @@ class OneToOneChatViewModel @AssistedInject constructor(
             is OneToOneChatViewModelEvent.SetUnseenMessagesCount -> getUnseenMessagesCount(event.userId)
             is OneToOneChatViewModelEvent.AddUserTyping -> addUserTyping(event.chatId,event.userId)
             is OneToOneChatViewModelEvent.RemoveUserTyping -> removeUserTyping(event.chatId,event.userId)
+            is OneToOneChatViewModelEvent.DeleteMessage -> deleteMessage(event.messageId,event.chatId)
+            is OneToOneChatViewModelEvent.ConfirmMessageChanges -> confirmMessageChanges(event.newMessage)
+            is OneToOneChatViewModelEvent.ChangeEditModeState -> changeEditModeState(event.message)
         }
     }
 
@@ -278,4 +293,17 @@ class OneToOneChatViewModel @AssistedInject constructor(
         _sendMessageText.update { query }
     }
 
+    private fun deleteMessage(messageId: String,chatId: String) = viewModelScope.launch {
+        deleteMessageUseCase(messageId,chatId)
+    }
+
+    private fun confirmMessageChanges(newMessage: Message) = viewModelScope.launch {
+        editMessageUseCase(newMessage.copy(chatId = chatId))
+    }
+
+    private fun changeEditModeState(message: Message?) = viewModelScope.launch {
+        _chatUiState.update {
+            it.copy(messageToEdit = message)
+        }
+    }
 }

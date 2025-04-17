@@ -16,6 +16,6 @@ fun CheckedStatusIcon() {
             .size(15.sdp),
         painter = painterResource(id = R.drawable.double_check),
         contentDescription = "Check",
-        tint = MaterialTheme.colorScheme.primary
+        tint = MaterialTheme.colorScheme.secondary
     )
 }
