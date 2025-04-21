@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.chatapp.differentScreensSupport.sdp
 
 @Composable
-fun VerticalUseCardActionButton(
+fun UserCardActionButton(
     icon: ImageVector,
     colors: IconButtonColors,
     onClick: () -> Unit,

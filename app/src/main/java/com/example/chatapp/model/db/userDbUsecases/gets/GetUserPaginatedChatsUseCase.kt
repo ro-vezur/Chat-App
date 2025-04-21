@@ -1,6 +1,5 @@
 package com.example.chatapp.model.db.userDbUsecases.gets
 
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -23,8 +22,6 @@ class GetUserPaginatedChatsUseCase @Inject constructor(
 ) {
     operator fun invoke(userId: String, contacts: List<LocalChatInfo> ): Flow<PagingData<ChatUI>> {
         if(contacts.isEmpty()) return emptyFlow()
-
-        Log.d("ids",contacts.map { it.id }.toString())
 
         val query = firestore.collection(CHATS_DB)
             .whereIn("id",contacts.map { it.id })

@@ -11,29 +11,43 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class GetUsersListWithIdsUseCase @Inject constructor(
-    fireStore: FirebaseFirestore
+    fireStore: FirebaseFirestore,
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
 ) {
     private val usersDb  = fireStore.collection(USERS_DB_COLLECTION)
 
     suspend operator fun invoke(ids: List<String>): Flow<Resource<List<User>>> = flow {
+        val mainUserId = getCurrentUserIdUseCase()
+
         val documents = usersDb
             .whereIn("id",ids)
             .get().await().documents
 
         emit(Resource.Success(
-            data = documents.map { it.toObject(User::class.java)?: User() })
+            data = documents.mapNotNull {
+                val user = it.toObject(User::class.java)
+                user?.copy(
+                    name = user.getOppositeUserName(mainUserId),
+                    imageUrl = user.getOppositeUserImage(mainUserId),
+                )
+            }
+        )
         )
     }.catch { e ->
         e.printStackTrace()
     }
 
     suspend operator fun invoke(ids: List<String>,query: String): Flow<Resource<List<User>>> = flow {
+
         val documents = usersDb
             .whereIn("id",ids)
             .get().await().documents
 
         emit(Resource.Success(
-            data = documents.filter { (it["name"] as String).contains(query,true) }.map { it.toObject(User::class.java)?: User() })
+            data = documents.filter { (it["name"] as String).contains(query,true) }.mapNotNull {
+                it.toObject(User::class.java)
+            }
+        )
         )
     }.catch { e ->
         e.printStackTrace()

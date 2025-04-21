@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,7 +24,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.cloudinary.android.MediaManager
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.layouts.sharedComponents.viewmodels.UserViewModel
 import com.example.chatapp.ui.theme.ChatAppTheme
@@ -49,7 +47,6 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        initCloudinary()
         ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets -> insets }
 
         setContent {
@@ -63,12 +60,10 @@ class MainActivity : ComponentActivity() {
 
             splashScreen.setKeepOnScreenCondition{ keepSplashScreen}
 
-            LaunchedEffect(Unit){
-                lifecycleScope.launch {
-                    FirebaseAuth.getInstance().addAuthStateListener {  }
-                    isLogged = FirebaseAuth.getInstance().currentUser != null
-                    keepSplashScreen = false
-                }
+            lifecycleScope.launch {
+                FirebaseAuth.getInstance().addAuthStateListener {  }
+                isLogged = FirebaseAuth.getInstance().currentUser != null
+                keepSplashScreen = false
             }
 
             val user by sharedUserViewModel.user.collectAsStateWithLifecycle()
@@ -77,6 +72,7 @@ class MainActivity : ComponentActivity() {
 
             FirebaseAuth.getInstance().addAuthStateListener {
                 isLogged = it.currentUser != null
+                sharedUserViewModel.updateOnlineStatus(isLogged == true)
 
                 if(isLogged == true) {
                     if(!isAskedForNotificationPermission && !notificationPermission.status.isGranted) {
@@ -102,13 +98,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    private fun initCloudinary() {
-        val config = hashMapOf<String,String>()
-        config["cloud_name"] = cloudName
-        config["api_key"] = cloudinaryApiKey
-        MediaManager.init(this,config)
     }
 
     override fun onResume() {

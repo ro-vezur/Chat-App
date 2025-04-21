@@ -37,7 +37,18 @@ object ScreenRoutes {
         @Serializable
         data object SettingsGraphRoute {
             @Serializable
-            data object MainSettingsRoute
+            data object MainSettingsRoute {
+                @Serializable
+                data object PrivacyRoute
+                @Serializable
+                data object NotificationsRoute
+                @Serializable
+                data object MessagesRoute
+                @Serializable
+                data object MediaRoute
+                @Serializable
+                data object AppearanceRoute
+            }
 
             @Serializable
             data object EditProfileRoute
