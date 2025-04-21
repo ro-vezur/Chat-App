@@ -1,6 +1,5 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.requestsScreen.requestsViewModel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCase
@@ -41,7 +40,6 @@ class FriendsRequestsViewModel @Inject constructor(
     }
 
     private fun declineFriendRequest(requestUserId: String) = viewModelScope.launch {
-        Log.d("request user id",requestUserId)
         declineFriendRequestUseCase(requestUserId)
     }
 

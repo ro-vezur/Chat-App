@@ -39,7 +39,7 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.requestsScre
 import com.example.chatapp.layouts.sharedComponents.images.UserImage
 import com.example.chatapp.layouts.sharedComponents.inputFields.CustomSearchBar
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
-import com.example.chatapp.layouts.verticalLayout.sharedComponents.VerticalUseCardActionButton
+import com.example.chatapp.layouts.verticalLayout.sharedComponents.UserCardActionButton
 import com.example.chatapp.others.Resource
 import com.example.chatapp.ui.theme.ChatAppTheme
 import com.example.chatapp.ui.theme.FriendColor
@@ -152,7 +152,7 @@ private fun UserRequestCard(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        VerticalUseCardActionButton(
+        UserCardActionButton(
             icon = Icons.Filled.Clear,
             colors = IconButtonDefaults.iconButtonColors(containerColor =  MaterialTheme.colorScheme.error),
             onClick = {
@@ -162,7 +162,7 @@ private fun UserRequestCard(
             }
         )
 
-        VerticalUseCardActionButton(
+        UserCardActionButton(
             icon = Icons.Filled.Check,
             colors = IconButtonDefaults.iconButtonColors(containerColor = FriendColor),
             onClick = {
