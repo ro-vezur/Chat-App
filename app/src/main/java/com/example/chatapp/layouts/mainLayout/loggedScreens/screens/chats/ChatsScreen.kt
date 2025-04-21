@@ -1,6 +1,5 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +21,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.chatapp.Dtos.chat.ChatUI
 import com.example.chatapp.Dtos.chat.chatType.ChatType
+import com.example.chatapp.LocalUser
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsUiState
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsViewModelEvent
@@ -37,6 +37,7 @@ fun ChatsScreen(
     paginatedUserChats: LazyPagingItems<ChatUI>,
     dispatchEvent: (ChatsViewModelEvent) -> Unit,
 ) {
+    val mainUser = LocalUser.current
 
     Column(
         modifier = Modifier
@@ -62,7 +63,9 @@ fun ChatsScreen(
                         .padding(horizontal = 6.sdp),
                     verticalArrangement = Arrangement.spacedBy(10.sdp)
                 ) {
-                    val sortedChats = paginatedUserChats.itemSnapshotList.mapNotNull { it }.sortedByDescending { it.lastMessage.sentTimeStamp }
+                    val sortedChats = paginatedUserChats.itemSnapshotList
+                        .mapNotNull { chat -> chat }
+                        .sortedByDescending { it.lastMessage.sentTimeStamp }
 
                     item { }
 
@@ -75,12 +78,17 @@ fun ChatsScreen(
                                 .fillMaxWidth()
                                 .height(70.sdp)
                                 .clickable {
-                                    if (chatUI.chatType == ChatType.USER) {
-                                        Log.d("chat id", chatUI.id)
-                                        Log.d("opposite user id", chatUI.userId.toString())
-                                        dispatchEvent(
-                                            ChatsViewModelEvent.NavigateTo("${ScreenRoutes.LoggedScreens.OneToOneChatRoute.MAIN_ROUTE_PART}/${chatUI.id}/${chatUI.userId}")
-                                        )
+                                    when (chatUI.chatType) {
+                                        ChatType.GROUP -> {
+
+                                        }
+                                        ChatType.USER -> {
+                                            dispatchEvent(
+                                                ChatsViewModelEvent.NavigateTo(
+                                                    "${ScreenRoutes.LoggedScreens.OneToOneChatRoute.MAIN_ROUTE_PART}/${chatUI.id}/${chatUI.user?.id}"
+                                                )
+                                            )
+                                        }
                                     }
                                 },
                             chatUI = chatUI

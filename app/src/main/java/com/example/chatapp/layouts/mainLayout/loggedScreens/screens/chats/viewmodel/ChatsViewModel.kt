@@ -90,10 +90,10 @@ class ChatsViewModel @Inject constructor(
     }
 
     private fun observeUserChatChanges() = viewModelScope.launch {
-        val userId = getCurrentUserIdUseCase()
+        val mainUserId = getCurrentUserIdUseCase()
 
         observeUserChatsChangesUseCase(
-            userId = userId,
+            userId = mainUserId,
         )
             .collectLatest { chatChange ->
             when(chatChange) {
@@ -106,15 +106,15 @@ class ChatsViewModel @Inject constructor(
                 is ChatChange.Updated -> {
                     val chat = chatChange.chat
 
-                    val userLastReadMessageId = chat.lastReads[userId] ?: ""
+                    val userLastReadMessageId = chat.lastReads[mainUserId] ?: ""
                     val lastMessageObject = getChatMessageUseCase(chatChange.chat.id,chatChange.chat.messages.lastOrNull() ?: "")
-                    val oppositeUserId = chat.getOppositeUserId(userId) ?: ""
+                    val oppositeUserId = chat.getOppositeUserId(mainUserId) ?: ""
                     val oppositeUser = if(chat.chatType == ChatType.USER) getUserUseCase(oppositeUserId) else null
                     val typingUsersText = when {
                         chat.usersTyping.isEmpty() -> null
-                        chat.usersTyping.size == 1 && chat.usersTyping.contains(userId) -> null
+                        chat.usersTyping.size == 1 && chat.usersTyping.contains(mainUserId) -> null
                         chat.usersTyping.size == 1 -> "${getUserUseCase(chat.usersTyping.first())?.name} is Typing"
-                        chat.usersTyping.size > 1 -> "${chat.usersTyping.filter { it != userId }.size} are Typing"
+                        chat.usersTyping.size > 1 -> "${chat.usersTyping.filter { it != mainUserId }.size} are Typing"
                         else -> null
                     }
 
@@ -123,9 +123,9 @@ class ChatsViewModel @Inject constructor(
                         chatType = chat.chatType,
                         lastMessage = lastMessageObject,
                         isPinned = false,
-                        name = oppositeUser?.name ?: chat.name,
-                        imageUrl = oppositeUser?.imageUrl ?: chat.imageUrl,
-                        userId = oppositeUser?.id,
+                        name = oppositeUser?.getOppositeUserName(mainUserId) ?: chat.name,
+                        imageUrl = oppositeUser?.getOppositeUserImage(mainUserId) ?: chat.imageUrl,
+                        user = oppositeUser,
                         unseenMessagesCount = chat.messages.dropWhile { messageId -> messageId != userLastReadMessageId}.drop(1).size,
                         typingUsersText = typingUsersText,
                         lastUpdateTimestamp = chat.lastUpdateTimestamp
@@ -135,11 +135,11 @@ class ChatsViewModel @Inject constructor(
                         val mutableState = state.toMutableList()
                         val stateIds = state.map { it.id }
                         if(stateIds.contains(chatUI.id)) {
-                            val chatIndex = stateIds.indexOf(stateIds.find { it == chatUI.id })
+                            val chatIndex = stateIds.indexOf(chatUI.id)
                             mutableState[chatIndex] = chatUI
                             mutableState
                         } else {
-                            (state + chatUI).toMutableList()
+                            state + chatUI
                         }
                     }
                 }
