@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -101,12 +101,11 @@ fun SharedChatsBottomBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            Spacer(modifier = Modifier.weight(0.4f))
-
             TextField(
                 modifier = Modifier
+                    .padding(start = 8.sdp)
                     .heightIn(50.sdp, Int.MAX_VALUE.sdp)
-                    .weight(4f)
+                    .weight(1f)
                     .focusable(),
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.Transparent,
@@ -137,7 +136,7 @@ fun SharedChatsBottomBar(
                         Icon(
                             modifier = Modifier
                                 .size(28.sdp),
-                            imageVector = Icons.Filled.AttachFile,
+                            imageVector = Icons.Filled.Photo,
                             contentDescription = "attach file"
                         )
                     }

@@ -1,5 +1,7 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat
 
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,14 +11,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,10 +43,15 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.PagingData
@@ -61,17 +63,16 @@ import com.example.chatapp.Dtos.chat.LocalChatInfo
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.Dtos.chat.chatType.ChatType
 import com.example.chatapp.Dtos.user.User
+import com.example.chatapp.Dtos.user.userSettings.SettingsSelectionValueVariants
 import com.example.chatapp.HH_MM
 import com.example.chatapp.LocalUser
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.helpers.navigation.navigateBack
-import com.example.chatapp.helpers.time.formatLastOnlineTime
 import com.example.chatapp.helpers.time.getDateFromMillis
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatUiState
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatViewModelEvent
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.DateHeader
-import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageDropDownMenu
-import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageDropDownMenu.MessageDropDownMenuButtonAction
+import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageDropDownMenu.SelectedMessageActionsMenu
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.CheckedStatusIcon
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.NoneStatusIcon
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.ReceivedStatusIcon
@@ -79,9 +80,7 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedC
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.SharedChatsBottomBar
 import com.example.chatapp.layouts.sharedComponents.buttons.TurnBackButton
 import com.example.chatapp.layouts.sharedComponents.images.UserImage
-import com.example.chatapp.others.states.DirectionalLazyListState.rememberDirectionalLazyListState
 import com.example.chatapp.ui.theme.ChatAppTheme
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -90,7 +89,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
-@OptIn(FlowPreview::class)
 @Composable
 fun OneToOneChatScreen(
     chatUiState: OneToOneChatUiState,
@@ -99,12 +97,13 @@ fun OneToOneChatScreen(
     navController: NavController,
     dispatchEvent: (OneToOneChatViewModelEvent) -> Job,
 ) {
+    Log.d("recomposition","COMPOSE!")
 
     val mainUser = LocalUser.current
+    val context = LocalContext.current
 
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState( )
-    val directionalLazyListState = rememberDirectionalLazyListState(listState = lazyListState)
 
     val canScrollBackward by remember {
         derivedStateOf { lazyListState.canScrollBackward }
@@ -126,6 +125,10 @@ fun OneToOneChatScreen(
         mutableStateOf(false)
     }
 
+    var selectedMessage by remember { mutableStateOf<Message?>(null) }
+    var selectedMessageOffset by remember { mutableStateOf(Offset.Zero) }
+    var selectedMessageSize by remember { mutableStateOf(IntSize.Zero) }
+
     var visibleDateHeader by remember { mutableStateOf<String?>(null) }
     val visibleScrollDownButton by remember(
         key1 = chatUiState.unseenMessagesCount,
@@ -143,8 +146,38 @@ fun OneToOneChatScreen(
     var isOppositeUserTyping by remember { mutableStateOf(false) }
 
     BackHandler {
-        dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,mainUser.id))
-        navController.navigateBack()
+        if(selectedMessage != null) {
+            selectedMessage = null
+        } else {
+            dispatchEvent(
+                OneToOneChatViewModelEvent.RemoveUserTyping(
+                    chatUiState.chat.id,
+                    mainUser.id
+                )
+            )
+            navController.navigateBack()
+        }
+    }
+
+    LaunchedEffect(chatUiState.user) {
+        val toast = Toast.makeText(context, "You are not allowed to chat this user", Toast.LENGTH_SHORT)
+
+        when {
+            chatUiState.user.settings.privacySettings.whoCanMessageMe == SettingsSelectionValueVariants.FRIENDS &&
+                    !chatUiState.user.friends.contains(mainUser.id) -> {
+                navController.navigateBack()
+                toast.show()
+            }
+            chatUiState.user.settings.privacySettings.whoCanMessageMe == SettingsSelectionValueVariants.NOBODY -> {
+                toast.show()
+                navController.navigateUp()
+            }
+            chatUiState.user.blockedUsers.contains(mainUser.id) -> {
+                navController.navigateBack()
+                toast.show()
+            }
+            else -> return@LaunchedEffect
+        }
     }
 
     LaunchedEffect(key1 = chatUiState.user.onlineStatus.devices) {
@@ -156,7 +189,6 @@ fun OneToOneChatScreen(
     LaunchedEffect(lazyListState) {
         snapshotFlow { visibleItemsInfo.map { it.index } }
             .mapNotNull { visibleItemsIndexes ->
-
                 visibleItemsIndexes.forEach { index ->
                     val chatItem = paginatedMessages[index]
                     chatItem?.let {
@@ -264,236 +296,320 @@ fun OneToOneChatScreen(
 
     Scaffold(
         modifier = Modifier,
-        contentWindowInsets = ScaffoldDefaults
-            .contentWindowInsets
-            .exclude(WindowInsets.navigationBars)
-            .exclude(WindowInsets.ime),
         topBar = {
-            Row(
-                modifier = Modifier
-                    .height(65.sdp)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.tertiary),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TurnBackButton(
-                    modifier = Modifier
-                        .size(50.sdp),
-                    iconPadding = 10.sdp,
-                    onClick = {
-                        navController.navigateBack()
-                        dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,mainUser.id))
-                    }
-                )
-
-                UserImage(
-                    modifier = Modifier
-                        .padding(start = 14.sdp)
-                        .size(40.sdp)
-                        .clip(CircleShape),
-                    imageUrl = chatUiState.user.imageUrl
-                )
-
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 12.sdp)
-                        .weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.sdp)
-                ) {
-                    Text(
-                        text = chatUiState.user.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
-                    )
-
-                    Text(
-                        text = if(chatUiState.user.onlineStatus.devices.isNotEmpty()) "Online" else  formatLastOnlineTime(chatUiState.user.onlineStatus.lastTimeSeen),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                IconButton(
-                    modifier = Modifier
-                        .size(50.sdp),
-                    onClick = {
-
-                    }
-                ) {
-                    Icon(
-                        modifier = Modifier
-                            .padding(6.sdp)
-                            .fillMaxSize(),
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = "more vert",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-            }
+            TopBar(
+                modifier = Modifier,
+                navController = navController,
+                chatUiState = chatUiState,
+                dispatchEvent = dispatchEvent,
+            )
         },
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
-
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .weight(1f),
-                contentAlignment = Alignment.TopCenter
+                    .padding(innerPadding)
+                    .fillMaxSize()
             ) {
-                LazyColumn(
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    reverseLayout = true,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.sdp),
-                    state = lazyListState,
+                        .weight(1f),
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    val itemCount = paginatedMessages.itemCount
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        reverseLayout = true,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.sdp),
+                        state = lazyListState,
+                    ) {
+                        val itemCount = paginatedMessages.itemCount
 
-                    items(
-                        count = itemCount,
-                        key = paginatedMessages.itemKey { item -> when(item) {
-                                is ChatItem.DateHeader -> item.date
-                                is ChatItem.MessageItem -> item.message.id
-                                is ChatItem.NewMessagesSeparator -> item.text
+                        items(
+                            count = itemCount,
+                            key = paginatedMessages.itemKey { item ->
+                                when (item) {
+                                    is ChatItem.DateHeader -> item.date
+                                    is ChatItem.MessageItem -> item.message.id
+                                    is ChatItem.NewMessagesSeparator -> item.text
+                                }
                             }
-                        }
-                    ) { index ->
+                        ) { index ->
 
-                        val chatItem = paginatedMessages.peek(index)
-                        val previousMessage =  if(index + 1 < itemCount) paginatedMessages[index+1] else null
+                            val chatItem = paginatedMessages.peek(index)
+                            val previousMessage =
+                                if (index + 1 < itemCount) paginatedMessages[index + 1] else null
 
 
-                        chatItem?.let {
-                            if(chatItem is ChatItem.DateHeader ) {
-                                DateHeader(date = chatItem.date)
-                            }
-                            
-                            if (chatItem is ChatItem.NewMessagesSeparator) {
-                                DateHeader(date = chatItem.text)
-                            }
-
-                            if(chatItem is ChatItem.MessageItem) {
-
-                                val isPreviousMessageBySameUser = when(previousMessage) {
-                                    is ChatItem.MessageItem -> { previousMessage.message.userId == chatItem.message.userId }
-                                    else -> false
+                            chatItem?.let {
+                                if (chatItem is ChatItem.DateHeader) {
+                                    DateHeader(date = chatItem.date)
                                 }
 
-                                if(chatItem.message.userId == mainUser.id) {
-                                    MyMessageCard(
-                                        message = chatItem.message,
-                                        oppositeUser = chatUiState.user,
-                                        dispatchEvent = dispatchEvent
-                                    )
-                                } else {
-                                    OppositeUserMessageCard(
-                                        message = chatItem.message,
-                                        isPreviousMessageBySameUser = isPreviousMessageBySameUser,
-                                        chatUiState = chatUiState,
-                                    )
+                                if (chatItem is ChatItem.NewMessagesSeparator) {
+                                    DateHeader(date = chatItem.text)
+                                }
+
+                                if (chatItem is ChatItem.MessageItem) {
+
+                                    val isPreviousMessageBySameUser = when (previousMessage) {
+                                        is ChatItem.MessageItem -> {
+                                            previousMessage.message.userId == chatItem.message.userId
+                                        }
+
+                                        else -> false
+                                    }
+
+                                    if (chatItem.message.userId == mainUser.id) {
+                                        MyMessageCard(
+                                            message = chatItem.message,
+                                            oppositeUser = chatUiState.user,
+                                            onMessageClick = { newAnchorOffset, newAnchorSize ->
+                                                selectedMessage = if(selectedMessage == null) {
+                                                    chatItem.message
+                                                } else {
+                                                    null
+                                                }
+                                                selectedMessageOffset = newAnchorOffset
+                                                selectedMessageSize = newAnchorSize
+                                            }
+                                        )
+                                    } else {
+                                        OppositeUserMessageCard(
+                                            message = chatItem.message,
+                                            isPreviousMessageBySameUser = isPreviousMessageBySameUser,
+                                            chatUiState = chatUiState,
+                                            onMessageClick = { newAnchorOffset, newAnchorSize ->
+                                                selectedMessage = if(selectedMessage == null) {
+                                                    chatItem.message
+                                                } else {
+                                                    null
+                                                }
+                                                selectedMessageOffset = newAnchorOffset
+                                                selectedMessageSize = newAnchorSize
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                visibleDateHeader?.let {
-                    DateHeader(date = it)
-                }
+                    visibleDateHeader?.let {
+                        DateHeader(date = it)
+                    }
 
-                if(visibleScrollDownButton) {
-                    ScrollDownButton(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd),
-                        onClick = {
-                            scope.launch {
-                                lazyListState.animateScrollToItem(0)
-                            }
-                        },
-                        unseenMessagesCount = chatUiState.unseenMessagesCount
-                    )
-                }
-
-                if(isOppositeUserTyping) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(start = 12.sdp, bottom = 5.sdp)
-                            .clip(RoundedCornerShape(6.sdp))
-                            .background(MaterialTheme.colorScheme.surface)
-                    ) {
-                        Text(
+                    if (visibleScrollDownButton) {
+                        ScrollDownButton(
                             modifier = Modifier
-                                .padding(7.sdp),
-                            text = "${chatUiState.user.name} Is Typing...",
-                            style = MaterialTheme.typography.bodyMedium
+                                .align(Alignment.BottomEnd),
+                            onClick = {
+                                scope.launch {
+                                    lazyListState.animateScrollToItem(0)
+                                }
+                            },
+                            unseenMessagesCount = chatUiState.unseenMessagesCount
+                        )
+                    }
+
+                    if (isOppositeUserTyping) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(start = 12.sdp, bottom = 5.sdp)
+                                .clip(RoundedCornerShape(6.sdp))
+                                .background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .padding(7.sdp),
+                                text = "${chatUiState.user.name} Is Typing...",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+
+                when {
+                    mainUser.settings.privacySettings.whoCanMessageMe == SettingsSelectionValueVariants.NOBODY -> return@Box
+                    mainUser.settings.privacySettings.whoCanMessageMe == SettingsSelectionValueVariants.FRIENDS &&
+                            !mainUser.friends.contains(chatUiState.user.id) -> return@Box
+                    mainUser.blockedUsers.contains(chatUiState.user.id) -> return@Box
+                    else -> {
+                        SharedChatsBottomBar(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
+                                .imePadding()
+                                .background(MaterialTheme.colorScheme.tertiary),
+                            typedText = sendMessageText,
+                            messageToEdit = chatUiState.messageToEdit,
+                            changeSendMessageText = { query ->
+                                dispatchEvent(OneToOneChatViewModelEvent.ChangeSendMessageText(query))
+                            },
+                            sendMessage = { message ->
+                                dispatchEvent(OneToOneChatViewModelEvent.SendMessage(message))
+                                if (lastItemIndex > 3) {
+                                    scope.launch {
+                                        lazyListState.animateScrollToItem(0)
+                                    }
+                                }
+                            },
+                            editMessage = { message ->
+                                dispatchEvent(OneToOneChatViewModelEvent.ConfirmMessageChanges(message))
+                            },
+                            addLocalChat = {
+                                val localChatInfo = LocalChatInfo(
+                                    id = chatUiState.chat.id,
+                                    chatType = ChatType.USER
+                                )
+
+                                dispatchEvent(
+                                    OneToOneChatViewModelEvent.AddLocalChatInfo(
+                                        mainUser.id,
+                                        localChatInfo
+                                    )
+                                )
+                                dispatchEvent(
+                                    OneToOneChatViewModelEvent.AddLocalChatInfo(
+                                        chatUiState.user.id,
+                                        localChatInfo
+                                    )
+                                )
+                            },
+                            isUserTyping = { isTyping ->
+                                if (isTyping) {
+                                    dispatchEvent(
+                                        OneToOneChatViewModelEvent.AddUserTyping(
+                                            chatUiState.chat.id,
+                                            mainUser.id
+                                        )
+                                    )
+                                } else {
+                                    dispatchEvent(
+                                        OneToOneChatViewModelEvent.RemoveUserTyping(
+                                            chatUiState.chat.id,
+                                            mainUser.id
+                                        )
+                                    )
+                                }
+                            },
+                            changeMessageToEdit = { messageToEdit ->
+                                dispatchEvent(
+                                    OneToOneChatViewModelEvent.ChangeEditModeState(messageToEdit)
+                                )
+                            }
                         )
                     }
                 }
-
             }
 
-            SharedChatsBottomBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .imePadding()
-                    .background(MaterialTheme.colorScheme.tertiary),
-                typedText = sendMessageText,
-                messageToEdit = chatUiState.messageToEdit,
-                changeSendMessageText = { query ->
-                    dispatchEvent(OneToOneChatViewModelEvent.ChangeSendMessageText(query))
-                },
-                sendMessage = { message ->
-                    dispatchEvent(OneToOneChatViewModelEvent.SendMessage(message))
-                    if(lastItemIndex > 3) {
-                        scope.launch {
-                            lazyListState.animateScrollToItem(0)
-                        }
+            selectedMessage?.let {
+                SelectedMessageActionsMenu(
+                    selectedMessageOffset = selectedMessageOffset,
+                    selectedMessageSize = selectedMessageSize,
+                    selectedMessage = it,
+                    onDismiss = { selectedMessage = null },
+                    dispatchEvent = { event ->
+                        selectedMessage = null
+                        dispatchEvent(event)
                     }
-                },
-                editMessage = { message ->
-                    dispatchEvent(OneToOneChatViewModelEvent.ConfirmMessageChanges(message))
-                },
-                addLocalChat = {
-                    val localChatInfo = LocalChatInfo(
-                        id = chatUiState.chat.id,
-                        chatType = ChatType.USER
-                    )
-
-                    dispatchEvent(OneToOneChatViewModelEvent.AddLocalChatInfo(mainUser.id,localChatInfo))
-                    dispatchEvent(OneToOneChatViewModelEvent.AddLocalChatInfo(chatUiState.user.id,localChatInfo))
-                },
-                isUserTyping = { isTyping ->
-                    if(isTyping) {
-                        dispatchEvent(OneToOneChatViewModelEvent.AddUserTyping(chatUiState.chat.id,mainUser.id))
-                    } else {
-                        dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,mainUser.id))
-                    }
-                },
-                changeMessageToEdit = { messageToEdit -> dispatchEvent(OneToOneChatViewModelEvent.ChangeEditModeState(messageToEdit)) }
-            )
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun MyMessageCard(
-    modifier: Modifier = Modifier,
-    message: Message,
-    oppositeUser: User,
+fun TopBar(
+    modifier: Modifier,
+    navController: NavController,
+    chatUiState: OneToOneChatUiState,
     dispatchEvent: (OneToOneChatViewModelEvent) -> Job,
 ) {
     val mainUser = LocalUser.current
 
+    Row(
+        modifier = modifier
+            .height(65.sdp)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.tertiary),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TurnBackButton(
+            modifier = Modifier
+                .size(50.sdp),
+            iconPadding = 10.sdp,
+            onClick = {
+                navController.navigateBack()
+                dispatchEvent(OneToOneChatViewModelEvent.RemoveUserTyping(chatUiState.chat.id,mainUser.id))
+            }
+        )
+
+        UserImage(
+            modifier = Modifier
+                .padding(start = 14.sdp)
+                .size(40.sdp)
+                .clip(CircleShape),
+            imageUrl = chatUiState.user.imageUrl
+        )
+
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 12.sdp)
+                .weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.sdp)
+        ) {
+            Text(
+                text = chatUiState.user.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
+
+            Text(
+                text = chatUiState.user.getOppositeUserOnlineStatus(mainUser.id) ?: "No Activity",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        IconButton(
+            modifier = Modifier
+                .size(50.sdp),
+            onClick = {
+
+            }
+        ) {
+            Icon(
+                modifier = Modifier
+                    .padding(6.sdp)
+                    .fillMaxSize(),
+                imageVector = Icons.Filled.MoreVert,
+                contentDescription = "more vert",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
+    }
+}
+@Composable
+private fun MyMessageCard(
+    modifier: Modifier = Modifier,
+    message: Message,
+    oppositeUser: User,
+    onMessageClick: (anchorOffset: Offset, anchorSize: IntSize) -> Unit
+) {
+    val mainUser = LocalUser.current
+
     val interactionSource = remember { MutableInteractionSource() }
-    var isDropDownMenuExpanded by remember { mutableStateOf(false) }
+
+    var anchorOffset by remember { mutableStateOf(Offset.Zero) }
+    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
 
     Box(
         modifier = modifier
@@ -502,105 +618,86 @@ private fun MyMessageCard(
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                role = Role.DropdownList
             ) {
-                isDropDownMenuExpanded = true
+                onMessageClick(anchorOffset, anchorSize)
+            }
+            .onGloballyPositioned { layoutCoordinates ->
+                anchorOffset = layoutCoordinates.positionInWindow()
+                anchorSize = layoutCoordinates.size
             },
         contentAlignment = Alignment.CenterEnd,
     ) {
-        Box(modifier = Modifier){
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 6.sdp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(
-                            topStart = 10.sdp,
-                            topEnd = 0.sdp,
-                            bottomStart = 10.sdp,
-                            bottomEnd = 10.sdp,
-                        )
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 6.sdp)
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(
+                        topStart = 10.sdp,
+                        topEnd = 0.sdp,
+                        bottomStart = 10.sdp,
+                        bottomEnd = 10.sdp,
                     )
-                    .padding(12.sdp),
-                verticalArrangement = Arrangement.spacedBy(4.sdp),
-            ) {
-                Text(
-                    modifier = Modifier
-                        .padding(start = 4.sdp),
-                    text = message.content,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    style = MaterialTheme.typography.bodyMedium
                 )
+                .padding(12.sdp),
+            verticalArrangement = Arrangement.spacedBy(4.sdp),
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(start = 4.sdp),
+                text = message.content,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.bodyMedium
+            )
 
-                Row(
-                    modifier = Modifier
-                        .padding(end = 2.sdp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.Bottom
-                ) {
+            Row(
+                modifier = Modifier
+                    .padding(end = 2.sdp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.Bottom
+            ) {
 
-                    if(message.edited) {
-                        Text(
-                            text = "Edited",
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        
-                        Spacer(modifier = Modifier.width(5.sdp))
-                    }
-                    
+                if(message.edited) {
                     Text(
-                        text = message.sentTimeStamp?.let {
-                            getDateFromMillis(
-                                message.sentTimeStamp,
-                                HH_MM
-                            )
-                        } ?: "",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        text = "Edited",
+                        color = Color.White,
                         style = MaterialTheme.typography.bodySmall
                     )
 
                     Spacer(modifier = Modifier.width(5.sdp))
+                }
 
-                    when {
-                        message.seenBy.contains(oppositeUser.id) -> {
-                            CheckedStatusIcon()
-                        }
+                Text(
+                    text = message.sentTimeStamp?.let {
+                        getDateFromMillis(
+                            message.sentTimeStamp,
+                            HH_MM
+                        )
+                    } ?: "",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.bodySmall
+                )
 
-                        oppositeUser.onlineStatus.devices.isNotEmpty() -> {
-                            ReceivedStatusIcon()
-                        }
+                Spacer(modifier = Modifier.width(5.sdp))
 
-                        oppositeUser.blockedUsers.contains(mainUser.id) -> {
-                            NoneStatusIcon()
-                        }
+                when {
+                    message.seenBy.contains(oppositeUser.id) -> {
+                        CheckedStatusIcon()
+                    }
 
-                        else -> {
-                            NoneStatusIcon()
-                        }
+                    oppositeUser.onlineStatus.devices.isNotEmpty() -> {
+                        ReceivedStatusIcon()
+                    }
+
+                    oppositeUser.blockedUsers.contains(mainUser.id) -> {
+                        NoneStatusIcon()
+                    }
+
+                    else -> {
+                        NoneStatusIcon()
                     }
                 }
             }
-
-            MessageDropDownMenu(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter),
-                isExpanded = isDropDownMenuExpanded,
-                isMyMessage = true,
-                changeExpandedState = { isDropDownMenuExpanded = it },
-                dispatchAction = { action ->
-                    when (action) {
-                        MessageDropDownMenuButtonAction.DELETE -> {
-                            dispatchEvent(OneToOneChatViewModelEvent.DeleteMessage(message.id,message.chatId))
-                        }
-
-                        MessageDropDownMenuButtonAction.EDIT -> {
-                            dispatchEvent(OneToOneChatViewModelEvent.ChangeEditModeState(message))
-                            dispatchEvent(OneToOneChatViewModelEvent.ChangeSendMessageText(message.content))
-                        }
-                    }
-                }
-            )
         }
     }
 }
@@ -611,11 +708,27 @@ private fun OppositeUserMessageCard(
     message: Message,
     isPreviousMessageBySameUser: Boolean,
     chatUiState: OneToOneChatUiState,
+    onMessageClick: (anchorOffset: Offset, anchorSize: IntSize) -> Unit
 ) {
+    var anchorOffset by remember { mutableStateOf(Offset.Zero) }
+    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
+
+    val interactionSource = remember { MutableInteractionSource() }
+
     Row(
         modifier = modifier
             .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 0.sdp, end = 80.sdp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+            ) {
+                onMessageClick(anchorOffset, anchorSize)
+            }
+            .onGloballyPositioned { layoutCoordinates ->
+                anchorOffset = layoutCoordinates.positionInWindow()
+                anchorSize = layoutCoordinates.size
+            },
         horizontalArrangement = Arrangement.Start,
     ) {
 
@@ -636,7 +749,6 @@ private fun OppositeUserMessageCard(
 
         Column (
             modifier = Modifier
-                .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 0.sdp)
                 .background(
                     color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(
@@ -667,6 +779,16 @@ private fun OppositeUserMessageCard(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.bodySmall
                 )
+
+                if(message.edited) {
+                    Spacer(modifier = Modifier.width(5.sdp))
+
+                    Text(
+                        text = "Edited",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
     }

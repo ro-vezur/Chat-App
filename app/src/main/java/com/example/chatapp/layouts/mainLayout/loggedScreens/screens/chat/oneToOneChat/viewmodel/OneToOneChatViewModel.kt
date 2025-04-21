@@ -28,6 +28,7 @@ import com.example.chatapp.model.db.messagesDbUseCases.posts.EditMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.SetMessagesReadStatusUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.posts.UpdateUserLastSeenMessageIdUseCase
 import com.example.chatapp.model.db.sealedChanges.MessageChange
+import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
 import com.example.chatapp.model.db.userDbUsecases.gets.GetUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddLocalChatInfoUseCase
@@ -66,6 +67,7 @@ class OneToOneChatViewModel @AssistedInject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val deleteMessageUseCase: DeleteMessageUseCase,
     private val editMessageUseCase: EditMessageUseCase,
+    private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
 ): ViewModel() {
 
     @AssistedFactory
@@ -120,16 +122,33 @@ class OneToOneChatViewModel @AssistedInject constructor(
                         }
                     }
                     is MessageChange.Updated -> {
-                        updatedMessages.update { it + messageUpdate.message }
+                        updatedMessages.update { state ->
+                            val mutableState = state.toMutableList()
+                            val stateIDs = mutableState.map { it.id }
+
+                            if(stateIDs.contains(messageUpdate.message.id)) {
+                                val messageIndex = stateIDs.indexOf(messageUpdate.message.id)
+                                mutableState[messageIndex] = messageUpdate.message
+                                mutableState
+                            } else {
+                                state + messageUpdate.message
+                            }
+                        }
                     }
                 }
             }
         }
     }
     private fun observeUser() = viewModelScope.launch {
+        val mainUserId = getCurrentUserIdUseCase()
         observeUserUseCase(oppositeUserId).collectLatest { user ->
             _chatUiState.update { state ->
-                state.copy(user = user)
+                state.copy(
+                    user = user.copy(
+                        name = user.getOppositeUserName(mainUserId),
+                        imageUrl = user.getOppositeUserImage(mainUserId)
+                    )
+                )
             }
         }
     }
@@ -232,11 +251,8 @@ class OneToOneChatViewModel @AssistedInject constructor(
             messagesReadList.sortByDescending { it.sentTimeStamp }
 
             if((lastReadMessage.sentTimeStamp ?: 0) < (messagesReadList.first().sentTimeStamp ?: 0) || lastReadMessageId.isEmpty()) {
-              //  Log.d("first msg id",messagesReadList.firstOrNull()?.content.toString())
                 updateUserLastSeenMessageIdUseCase(userId,chatId,messagesReadList.first().id)
             }
-
-
 
             setMessagesReadStatusUseCase(
                 messagesReadList.filter { it.userId != userId },chatId,userId, onSuccess = { clearMessagesReadList() }
