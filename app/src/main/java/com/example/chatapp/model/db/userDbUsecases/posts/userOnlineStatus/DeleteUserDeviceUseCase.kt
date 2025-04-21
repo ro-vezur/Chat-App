@@ -16,18 +16,17 @@ class DeleteUserDeviceUseCase @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) {
 
-    private val deviceId = context.deviceId()
     private val usersCollection = firestore.collection(USERS_DB_COLLECTION)
 
     operator fun invoke(userId: String) {
         try {
             firestore.runTransaction { transaction ->
+                val deviceId = context.deviceId()
                 val userRef = usersCollection.document(userId)
                 val user = transaction[userRef].toObject<User>()
 
                 user?.let {
                     val devices = user.onlineStatus.devices
-
                     if(devices.contains(deviceId)) {
                         devices.remove(deviceId)
 

@@ -9,6 +9,7 @@ import com.example.chatapp.model.db.userDbUsecases.gets.GetUsersListWithIdsUseCa
 import com.example.chatapp.model.db.userDbUsecases.observers.ObserveUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.AddUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.DeleteFriendUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.UpdateUserSettingsUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.UpdateUserUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.AddFcmTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
@@ -32,32 +33,26 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object UsersDbUsecasesDI {
-    @Provides
-    @Singleton
-    fun provideUpdateUserCase(
-        fireStore: FirebaseFirestore
-    ): UpdateUserUseCase = UpdateUserUseCase(fireStore)
 
     @Provides
     @Singleton
-    fun provideDeleteUserDeviceUseCase(
-        @ApplicationContext context: Context,
-        fireStore: FirebaseFirestore,
-    ): DeleteUserDeviceUseCase = DeleteUserDeviceUseCase(context,fireStore)
+    fun provideUpdateUserSettingsUseCase(fireStore: FirebaseFirestore) = UpdateUserSettingsUseCase(fireStore)
 
     @Provides
     @Singleton
-    fun provideAddUserDeviceUseCase(
-        @ApplicationContext context: Context,
-        fireStore: FirebaseFirestore,
-        getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
-    ): AddUserDeviceUseCase = AddUserDeviceUseCase(context,fireStore,getCurrentUserIdUseCase)
+    fun provideUpdateUserCase(fireStore: FirebaseFirestore): UpdateUserUseCase = UpdateUserUseCase(fireStore)
 
     @Provides
     @Singleton
-    fun provideObserveUserUseCase(fireStore: FirebaseFirestore): ObserveUserUseCase {
-        return ObserveUserUseCase(fireStore)
-    }
+    fun provideDeleteUserDeviceUseCase(@ApplicationContext context: Context, fireStore: FirebaseFirestore, ): DeleteUserDeviceUseCase = DeleteUserDeviceUseCase(context,fireStore)
+
+    @Provides
+    @Singleton
+    fun provideAddUserDeviceUseCase(@ApplicationContext context: Context, fireStore: FirebaseFirestore, ): AddUserDeviceUseCase = AddUserDeviceUseCase(context,fireStore)
+
+    @Provides
+    @Singleton
+    fun provideObserveUserUseCase(fireStore: FirebaseFirestore): ObserveUserUseCase = ObserveUserUseCase(fireStore)
 
     @Provides
     @Singleton
@@ -118,9 +113,7 @@ object UsersDbUsecasesDI {
 
     @Provides
     @Singleton
-    fun provideCurrentUserUseCase(fireStore: FirebaseFirestore): CollectionReference {
-        return fireStore.collection(USERS_DB_COLLECTION)
-    }
+    fun provideCurrentUserUseCase(fireStore: FirebaseFirestore): CollectionReference = fireStore.collection(USERS_DB_COLLECTION)
 
     @Provides
     @Singleton
@@ -146,8 +139,11 @@ object UsersDbUsecasesDI {
 
     @Provides
     @Singleton
-    fun provideGetUsersListWithIdsUseCase(fireStore: FirebaseFirestore): GetUsersListWithIdsUseCase {
-        return GetUsersListWithIdsUseCase(fireStore)
+    fun provideGetUsersListWithIdsUseCase(
+        fireStore: FirebaseFirestore,
+        getCurrentUserIdUseCase: GetCurrentUserIdUseCase
+    ): GetUsersListWithIdsUseCase {
+        return GetUsersListWithIdsUseCase(fireStore,getCurrentUserIdUseCase)
     }
 
     @Provides

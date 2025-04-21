@@ -45,21 +45,36 @@ class UserChatsPagingSource (
                     else -> null
                 }
 
-                ChatUI(
-                    id = chat.id,
-                    chatType = chat.chatType,
-                    lastMessage = getChatMessage(chat.id,chat.messages.lastOrNull() ?: ""),
-                    isPinned = chatIsPinned(chat.id),
-                    name = oppositeUser?.name ?: chat.name,
-                    imageUrl = oppositeUser?.imageUrl ?: chat.imageUrl,
-                    userId = oppositeUser?.id,
-                    unseenMessagesCount = chat.messages.dropWhile { messageId -> messageId != lastReadMessage}.drop(1).size,
-                    typingUsersText = typingUsersText,
-                    lastUpdateTimestamp = chat.lastUpdateTimestamp
-                )
+                if(oppositeUser == null) {
+                    ChatUI(
+                        id = chat.id,
+                        chatType = chat.chatType,
+                        lastMessage = getChatMessage(chat.id,chat.messages.lastOrNull() ?: ""),
+                        isPinned = chatIsPinned(chat.id),
+                        name = chat.name,
+                        imageUrl = chat.imageUrl,
+                        user = null,
+                        unseenMessagesCount = chat.messages.dropWhile { messageId -> messageId != lastReadMessage}.drop(1).size,
+                        typingUsersText = typingUsersText,
+                        lastUpdateTimestamp = chat.lastUpdateTimestamp
+                    )
+                } else {
+                    ChatUI(
+                        id = chat.id,
+                        chatType = chat.chatType,
+                        lastMessage = getChatMessage(chat.id, chat.messages.lastOrNull() ?: ""),
+                        isPinned = chatIsPinned(chat.id),
+                        name = oppositeUser.getOppositeUserName(userId),
+                        imageUrl = oppositeUser.getOppositeUserImage(userId),
+                        user = oppositeUser,
+                        unseenMessagesCount = chat.messages.dropWhile { messageId -> messageId != lastReadMessage }
+                            .drop(1).size,
+                        typingUsersText = typingUsersText,
+                        lastUpdateTimestamp = chat.lastUpdateTimestamp
+                    )
+                }
             }
 
-            Log.d("chats ui objects",chatsUIObjects.toString())
 
             LoadResult.Page(
                 data = chatsUIObjects,
