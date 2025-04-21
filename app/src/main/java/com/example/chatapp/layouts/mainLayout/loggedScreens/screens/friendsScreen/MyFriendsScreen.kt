@@ -1,13 +1,10 @@
-package com.example.chatapp.layouts.verticalLayout.loggedScreens.verticalFriends
+package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen
 
-import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,23 +27,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import coil.compose.AsyncImage
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.LocalUser
-import com.example.chatapp.R
 import com.example.chatapp.differentScreensSupport.sdp
-import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.DeleteFriendAlertDialog
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsUiState
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsViewModelEvent
+import com.example.chatapp.layouts.sharedComponents.images.UserImage
 import com.example.chatapp.layouts.sharedComponents.inputFields.CustomSearchBar
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
-import com.example.chatapp.layouts.verticalLayout.sharedComponents.VerticalUseCardActionButton
+import com.example.chatapp.layouts.verticalLayout.sharedComponents.UserCardActionButton
 import com.example.chatapp.others.Resource
 
 @Composable
-fun VerticalMyFriendsScreen(
+fun MyFriendsScreen(
     friendsUiState: FriendsUiState,
     dispatchEvent: (FriendsViewModelEvent) -> Unit,
 ) {
@@ -77,7 +70,6 @@ fun VerticalMyFriendsScreen(
 
                 is Resource.Success -> {
                     friendsUiState.myFriendsResult.data?.let { users ->
-                        Log.d("users",users.toString())
 
                         val rememberUsersList by remember(friendsUiState.searchQuery,users) {
                             mutableStateOf(users.filter { it.name.contains(friendsUiState.searchQuery,true) })
@@ -139,37 +131,22 @@ private fun SearchedUserCard(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if(user.imageUrl != null) {
-            AsyncImage(
-                modifier = Modifier
-                    .size(52.sdp)
-                    .clip(CircleShape),
-                model = user.imageUrl,
-                contentDescription = "user image",
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Image(
-                modifier = Modifier
-                    .size(52.sdp)
-                    .clip(CircleShape),
-                painter = painterResource(id = R.drawable.empty_profile),
-                contentDescription = "empty user image",
-                contentScale = ContentScale.Crop
-            )
-        }
-
+        UserImage(
+            modifier = Modifier
+                .size(52.sdp)
+                .clip(CircleShape),
+            imageUrl = user.imageUrl
+        )
 
         Text(
             modifier = Modifier
+                .weight(1f)
                 .padding(horizontal = 12.sdp),
             text = user.name,
             style = MaterialTheme.typography.labelMedium
         )
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        VerticalUseCardActionButton(
+        UserCardActionButton(
             icon = Icons.Filled.Delete,
             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.error),
             onClick = {
@@ -177,11 +154,11 @@ private fun SearchedUserCard(
             }
         )
 
-        VerticalUseCardActionButton(
+        UserCardActionButton(
             icon = Icons.Filled.Chat,
             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
             onClick = {
-                dispatchEvent(FriendsViewModelEvent.AddChat(listOf(mainUser.id,user.id)))
+                dispatchEvent(FriendsViewModelEvent.AddChat(listOf(mainUser.id, user.id)))
             }
         )
     }

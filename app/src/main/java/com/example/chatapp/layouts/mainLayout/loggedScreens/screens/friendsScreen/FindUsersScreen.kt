@@ -1,4 +1,4 @@
-package com.example.chatapp.layouts.verticalLayout.loggedScreens.verticalFriends
+package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Pending
 import androidx.compose.material.icons.filled.Send
@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import com.example.chatapp.Dtos.user.User
+import com.example.chatapp.Dtos.user.userSettings.SettingsSelectionValueVariants
 import com.example.chatapp.LocalUser
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel.FriendsUiState
@@ -38,13 +39,13 @@ import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScree
 import com.example.chatapp.layouts.sharedComponents.images.UserImage
 import com.example.chatapp.layouts.sharedComponents.inputFields.CustomSearchBar
 import com.example.chatapp.layouts.sharedComponents.resultScreens.LoadingScreen
-import com.example.chatapp.layouts.verticalLayout.sharedComponents.VerticalUseCardActionButton
+import com.example.chatapp.layouts.verticalLayout.sharedComponents.UserCardActionButton
 import com.example.chatapp.others.Resource
 import com.example.chatapp.ui.theme.FriendColor
 import kotlinx.coroutines.delay
 
 @Composable
-fun VerticalFindUsers(
+fun FindUsersScreen(
     friendsUiState: FriendsUiState,
     dispatchEvent: (FriendsViewModelEvent) -> Unit,
 ) {
@@ -138,16 +139,27 @@ private fun SearchedUserCard(
 
         Text(
             modifier = Modifier
-                .padding(horizontal = 15.sdp),
+                .weight(1f)
+                .padding(horizontal = 12.sdp),
             text = searchedUser.name,
             style = typography.labelLarge
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+
+        UserCardActionButton(
+            icon = Icons.Filled.Chat,
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+            ),
+            onClick = {
+
+            }
+        )
 
         when {
             mainUser.friends.contains(searchedUser.id) -> {
-                VerticalUseCardActionButton(
+                UserCardActionButton(
                     icon = Icons.Filled.EmojiEmotions,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = FriendColor,
@@ -159,7 +171,7 @@ private fun SearchedUserCard(
                 )
             }
             mainUser.sentRequestsToUsers.contains(searchedUser.id) -> {
-                VerticalUseCardActionButton(
+                UserCardActionButton(
                     icon = Icons.Filled.Pending,
                     colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary,),
                     onClick = {
@@ -168,13 +180,20 @@ private fun SearchedUserCard(
                 )
             }
             else -> {
-                VerticalUseCardActionButton(
-                    icon = Icons.Filled.Send,
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary,),
-                    onClick = {
-                        dispatchEvent(FriendsViewModelEvent.SendFriendRequest(mainUser,searchedUser))
-                    }
-                )
+                if(searchedUser.settings.privacySettings.whoCanSendFriendsRequests != SettingsSelectionValueVariants.NOBODY) {
+                    UserCardActionButton(
+                        icon = Icons.Filled.Send,
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        onClick = {
+                            dispatchEvent(
+                                FriendsViewModelEvent.SendFriendRequest(
+                                    mainUser,
+                                    searchedUser
+                                )
+                            )
+                        }
+                    )
+                }
             }
         }
     }

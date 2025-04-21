@@ -1,6 +1,5 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScreen.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.Dtos.chat.Chat
@@ -77,7 +76,6 @@ class FriendsViewModel @Inject constructor(
 
      private fun fetchMyFriends(ids: List<String>) = viewModelScope.launch {
          getUsersListWithIdsUseCase(ids).collectLatest { result ->
-             Log.d("result data",result.data.toString())
              _friendsUiState.emit(
                  _friendsUiState.value.copy(
                      myFriendsResult = result
