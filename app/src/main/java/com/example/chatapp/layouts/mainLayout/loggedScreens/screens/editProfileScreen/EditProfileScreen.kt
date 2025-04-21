@@ -107,7 +107,7 @@ fun EditProfileScreen(
             enabled = isButtonEnabled,
             onClick = {
                 when {
-                    selectedImage != Uri.parse(user.imageUrl) -> {
+                    selectedImage != Uri.parse(user.imageUrl ?: "") -> {
                         isButtonEnabled = false
                         selectedImage?.let { uri ->
                             uploadImage(uri) { newImageUrl ->

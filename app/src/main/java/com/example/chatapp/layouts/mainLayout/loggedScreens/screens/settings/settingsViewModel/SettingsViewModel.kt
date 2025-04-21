@@ -2,7 +2,9 @@ package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.settings.se
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.chatapp.Dtos.user.userSettings.UserSettings
 import com.example.chatapp.model.db.userDbUsecases.gets.GetCurrentUserIdUseCase
+import com.example.chatapp.model.db.userDbUsecases.posts.UpdateUserSettingsUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.fcmTokenUsecases.RemoveFcmTokenUseCase
 import com.example.chatapp.model.db.userDbUsecases.posts.userOnlineStatus.DeleteUserDeviceUseCase
 import com.google.firebase.auth.FirebaseAuth
@@ -22,6 +24,7 @@ class SettingsViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
     private val deleteUserDeviceUseCase: DeleteUserDeviceUseCase,
+    private val updateUserSettingsUseCase: UpdateUserSettingsUseCase,
 ): ViewModel() {
     private val _settingsUiState: MutableStateFlow<SettingsUiState> = MutableStateFlow(
         SettingsUiState()
@@ -31,6 +34,7 @@ class SettingsViewModel @Inject constructor(
     fun dispatchEvent(event: SettingsViewModelEvent) = viewModelScope.launch {
         when(event) {
             SettingsViewModelEvent.LogOut -> logOut()
+            is SettingsViewModelEvent.UpdateUserSettings -> updateUserSettings(event.userId,event.settings)
         }
     }
 
@@ -42,10 +46,13 @@ class SettingsViewModel @Inject constructor(
             userId = currentUserId,
             token = newToken,
             onSuccess = {
-                deleteUserDeviceUseCase(currentUserId)
+            //    deleteUserDeviceUseCase(currentUserId)
                 auth.signOut()
             }
         )
     }
 
+    private fun updateUserSettings(userId: String,settings: UserSettings) = viewModelScope.launch {
+        updateUserSettingsUseCase(userId,settings)
+    }
 }
