@@ -3,7 +3,7 @@ package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.friendsScre
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.Dtos.chat.Chat
-import com.example.chatapp.Dtos.chat.chatType.ChatType
+import com.example.chatapp.Dtos.chat.enums.ChatType
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.helpers.time.getCurrentTimeInMillis
 import com.example.chatapp.model.db.chatDb.usecases.gets.GetOneToOneChatUseCase

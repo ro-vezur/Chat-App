@@ -23,7 +23,8 @@ class EditProfileViewModel @Inject constructor(
     }
 
     fun uploadImageToServer(file: Uri,onSuccess: (String) -> Unit) = viewModelScope.launch {
-        mediaImpl.uploadImageToServer(file,onSuccess)
+        val imageUrl = mediaImpl.uploadImageToServer(file)
+        onSuccess(imageUrl)
     }
 
     fun updateUser(user: User,onSuccess: () -> Unit) = viewModelScope.launch {
