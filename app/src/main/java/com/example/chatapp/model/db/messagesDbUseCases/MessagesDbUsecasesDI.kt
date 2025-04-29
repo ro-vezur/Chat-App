@@ -1,5 +1,6 @@
 package com.example.chatapp.model.db.messagesDbUseCases
 
+import com.example.chatapp.domain.apis.MediaApiInterface
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetAllUserChatsUnseenMessagesCountUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetLastReadMessageIdUseCase
@@ -27,7 +28,11 @@ object MessagesDbUsecasesDI {
 
     @Provides
     @Singleton
-    fun provideDeleteMessageUseCase(fireStore: FirebaseFirestore, db: DatabaseReference) = DeleteMessageUseCase(fireStore,db)
+    fun provideDeleteMessageUseCase(
+        fireStore: FirebaseFirestore,
+        db: DatabaseReference,
+        mediaApiInterface: MediaApiInterface
+    ) = DeleteMessageUseCase(fireStore,db,mediaApiInterface)
 
     @Provides
     @Singleton

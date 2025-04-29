@@ -3,7 +3,9 @@ package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToO
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -45,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
@@ -58,10 +62,12 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import coil.compose.AsyncImage
 import com.example.chatapp.Dtos.chat.ChatItem
 import com.example.chatapp.Dtos.chat.LocalChatInfo
 import com.example.chatapp.Dtos.chat.Message
-import com.example.chatapp.Dtos.chat.chatType.ChatType
+import com.example.chatapp.Dtos.chat.enums.ChatType
+import com.example.chatapp.Dtos.chat.enums.MessageType
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.Dtos.user.userSettings.SettingsSelectionValueVariants
 import com.example.chatapp.HH_MM
@@ -72,11 +78,11 @@ import com.example.chatapp.helpers.time.getDateFromMillis
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatUiState
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatViewModelEvent
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.DateHeader
-import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageDropDownMenu.SelectedMessageActionsMenu
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.CheckedStatusIcon
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.NoneStatusIcon
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageStatusIcons.ReceivedStatusIcon
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.ScrollDownButton
+import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.SelectedMessageActionsMenu.SelectedMessageActionsMenu
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.SharedChatsBottomBar
 import com.example.chatapp.layouts.sharedComponents.buttons.TurnBackButton
 import com.example.chatapp.layouts.sharedComponents.images.UserImage
@@ -104,6 +110,7 @@ fun OneToOneChatScreen(
 
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState( )
+
 
     val canScrollBackward by remember {
         derivedStateOf { lazyListState.canScrollBackward }
@@ -341,9 +348,7 @@ fun OneToOneChatScreen(
                         ) { index ->
 
                             val chatItem = paginatedMessages.peek(index)
-                            val previousMessage =
-                                if (index + 1 < itemCount) paginatedMessages[index + 1] else null
-
+                            val previousMessage = if (index + 1 < itemCount) paginatedMessages[index + 1] else null
 
                             chatItem?.let {
                                 if (chatItem is ChatItem.DateHeader) {
@@ -365,34 +370,63 @@ fun OneToOneChatScreen(
                                     }
 
                                     if (chatItem.message.userId == mainUser.id) {
-                                        MyMessageCard(
-                                            message = chatItem.message,
-                                            oppositeUser = chatUiState.user,
-                                            onMessageClick = { newAnchorOffset, newAnchorSize ->
-                                                selectedMessage = if(selectedMessage == null) {
-                                                    chatItem.message
-                                                } else {
-                                                    null
+                                        when(chatItem.message.messageType) {
+                                            MessageType.TEXT -> MyMessageCard(
+                                                message = chatItem.message,
+                                                oppositeUser = chatUiState.user,
+                                                onMessageClick = { newAnchorOffset, newAnchorSize ->
+                                                    selectedMessage = if(selectedMessage == null) {
+                                                        chatItem.message
+                                                    } else {
+                                                        null
+                                                    }
+                                                    selectedMessageOffset = newAnchorOffset
+                                                    selectedMessageSize = newAnchorSize
                                                 }
-                                                selectedMessageOffset = newAnchorOffset
-                                                selectedMessageSize = newAnchorSize
-                                            }
-                                        )
+                                            )
+                                            MessageType.IMAGE -> MyImageMessageCard(
+                                                message = chatItem.message,
+                                                oppositeUser = chatUiState.user,
+                                                onMessageClick = { newAnchorOffset, newAnchorSize ->
+                                                    selectedMessage = if(selectedMessage == null) {
+                                                        chatItem.message
+                                                    } else {
+                                                        null
+                                                    }
+                                                    selectedMessageOffset = newAnchorOffset
+                                                    selectedMessageSize = newAnchorSize
+                                                }
+                                            )
+                                        }
                                     } else {
-                                        OppositeUserMessageCard(
-                                            message = chatItem.message,
-                                            isPreviousMessageBySameUser = isPreviousMessageBySameUser,
-                                            chatUiState = chatUiState,
-                                            onMessageClick = { newAnchorOffset, newAnchorSize ->
-                                                selectedMessage = if(selectedMessage == null) {
-                                                    chatItem.message
-                                                } else {
-                                                    null
+                                        when(chatItem.message.messageType) {
+                                            MessageType.TEXT -> OppositeUserMessageCard(
+                                                message = chatItem.message,
+                                                isPreviousMessageBySameUser = isPreviousMessageBySameUser,
+                                                chatUiState = chatUiState,
+                                                onMessageClick = { newAnchorOffset, newAnchorSize ->
+                                                    selectedMessage = if(selectedMessage == null) {
+                                                        chatItem.message
+                                                    } else {
+                                                        null
+                                                    }
+                                                    selectedMessageOffset = newAnchorOffset
+                                                    selectedMessageSize = newAnchorSize
                                                 }
-                                                selectedMessageOffset = newAnchorOffset
-                                                selectedMessageSize = newAnchorSize
-                                            }
-                                        )
+                                            )
+                                            MessageType.IMAGE -> OppositeUserImageMessageCard(
+                                                message = chatItem.message,
+                                                onMessageClick = { newAnchorOffset, newAnchorSize ->
+                                                    selectedMessage = if(selectedMessage == null) {
+                                                        chatItem.message
+                                                    } else {
+                                                        null
+                                                    }
+                                                    selectedMessageOffset = newAnchorOffset
+                                                    selectedMessageSize = newAnchorSize
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -448,6 +482,7 @@ fun OneToOneChatScreen(
                                 .background(MaterialTheme.colorScheme.tertiary),
                             typedText = sendMessageText,
                             messageToEdit = chatUiState.messageToEdit,
+                            selectedImagesToSend = chatUiState.selectedImagesToSend,
                             changeSendMessageText = { query ->
                                 dispatchEvent(OneToOneChatViewModelEvent.ChangeSendMessageText(query))
                             },
@@ -502,6 +537,15 @@ fun OneToOneChatScreen(
                                 dispatchEvent(
                                     OneToOneChatViewModelEvent.ChangeEditModeState(messageToEdit)
                                 )
+                            },
+                            onSelectMedia = { uris ->
+                                dispatchEvent(OneToOneChatViewModelEvent.AddImagesToSend(uris))
+                            },
+                            removeMediaFromSelection = { media ->
+                                dispatchEvent(OneToOneChatViewModelEvent.RemoveMediaFromSelection(media))
+                            },
+                            sendMedia = {
+                                dispatchEvent(OneToOneChatViewModelEvent.SendMedia)
                             }
                         )
                     }
@@ -703,6 +747,94 @@ private fun MyMessageCard(
 }
 
 @Composable
+fun MyImageMessageCard(
+    modifier: Modifier = Modifier,
+    message: Message,
+    oppositeUser: User,
+    onMessageClick: (anchorOffset: Offset, anchorSize: IntSize) -> Unit
+) {
+    val mainUser = LocalUser.current
+
+    val interactionSource = remember { MutableInteractionSource() }
+
+    var anchorOffset by remember { mutableStateOf(Offset.Zero) }
+    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 60.sdp)
+            .heightIn(150.sdp, 320.sdp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+            ) {
+                onMessageClick(anchorOffset, anchorSize)
+            }
+            .onGloballyPositioned { layoutCoordinates ->
+                anchorOffset = layoutCoordinates.positionInWindow()
+                anchorSize = layoutCoordinates.size
+            },
+    ) {
+        AsyncImage(
+            modifier = Modifier
+                .padding(horizontal = 10.sdp)
+                .align(Alignment.CenterEnd)
+                .clip(RoundedCornerShape(10.sdp))
+                .border(
+                    border = BorderStroke(1.sdp, MaterialTheme.colorScheme.secondary),
+                    shape = RoundedCornerShape(10.sdp)
+                ),
+            model = message.content,
+            contentScale = ContentScale.Fit,
+            contentDescription = "image"
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(8.sdp)
+                .clip(RoundedCornerShape(12.sdp))
+                .background(Color.Black.copy(0.4f))
+                .padding(6.sdp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Text(
+                text = message.sentTimeStamp?.let {
+                    getDateFromMillis(
+                        message.sentTimeStamp,
+                        HH_MM
+                    )
+                } ?: "",
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Spacer(modifier = Modifier.width(5.sdp))
+
+            when {
+                message.seenBy.contains(oppositeUser.id) -> {
+                    CheckedStatusIcon()
+                }
+
+                oppositeUser.onlineStatus.devices.isNotEmpty() -> {
+                    ReceivedStatusIcon()
+                }
+
+                oppositeUser.blockedUsers.contains(mainUser.id) -> {
+                    NoneStatusIcon()
+                }
+
+                else -> {
+                    NoneStatusIcon()
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun OppositeUserMessageCard(
     modifier: Modifier = Modifier,
     message: Message,
@@ -717,7 +849,7 @@ private fun OppositeUserMessageCard(
 
     Row(
         modifier = modifier
-            .padding(top = if (isPreviousMessageBySameUser) 0.sdp else 0.sdp, end = 80.sdp)
+            .padding(end = 80.sdp)
             .fillMaxWidth()
             .clickable(
                 interactionSource = interactionSource,
@@ -789,6 +921,75 @@ private fun OppositeUserMessageCard(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun OppositeUserImageMessageCard(
+    modifier: Modifier = Modifier,
+    message: Message,
+    onMessageClick: (anchorOffset: Offset, anchorSize: IntSize) -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    var anchorOffset by remember { mutableStateOf(Offset.Zero) }
+    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(end = 60.sdp)
+            .heightIn(150.sdp, 320.sdp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+            ) {
+                onMessageClick(anchorOffset, anchorSize)
+            }
+            .onGloballyPositioned { layoutCoordinates ->
+                anchorOffset = layoutCoordinates.positionInWindow()
+                anchorSize = layoutCoordinates.size
+            },
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 10.sdp)
+        ) {
+            AsyncImage(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .clip(RoundedCornerShape(10.sdp))
+                    .border(
+                        border = BorderStroke(1.sdp, MaterialTheme.colorScheme.secondary),
+                        shape = RoundedCornerShape(10.sdp)
+                    ),
+                model = message.content,
+                contentScale = ContentScale.Fit,
+                contentDescription = "image"
+            )
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(8.sdp)
+                    .clip(RoundedCornerShape(12.sdp))
+                    .background(Color.Black.copy(0.4f))
+                    .padding(6.sdp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    text = message.sentTimeStamp?.let {
+                        getDateFromMillis(
+                            message.sentTimeStamp,
+                            HH_MM
+                        )
+                    } ?: "",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }

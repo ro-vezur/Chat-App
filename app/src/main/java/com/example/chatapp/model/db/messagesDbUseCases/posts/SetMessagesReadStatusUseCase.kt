@@ -15,7 +15,7 @@ import javax.inject.Inject
 class SetMessagesReadStatusUseCase @Inject constructor(
     private val db: DatabaseReference,
 ) {
-    operator fun invoke(messagesReadList: List<Message>, chatId: String,userId: String,onSuccess: () -> Unit) {
+    operator fun invoke(messagesReadList: List<Message>, chatId: String, userId: String, onSuccess: () -> Unit) {
         try {
             messagesReadList.forEach { message ->
                 val messageRef = db.child(CHATS_DB).child(chatId).child(MESSAGES_DB).child(message.id)

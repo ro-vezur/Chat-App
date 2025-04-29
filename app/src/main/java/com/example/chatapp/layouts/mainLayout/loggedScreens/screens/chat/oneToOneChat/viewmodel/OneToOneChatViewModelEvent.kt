@@ -1,5 +1,6 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel
 
+import android.net.Uri
 import com.example.chatapp.Dtos.chat.LocalChatInfo
 import com.example.chatapp.Dtos.chat.Message
 
@@ -16,4 +17,8 @@ sealed class OneToOneChatViewModelEvent {
     class DeleteMessage(val messageId: String,val chatId: String): OneToOneChatViewModelEvent()
     class ConfirmMessageChanges(val newMessage: Message): OneToOneChatViewModelEvent()
     class ChangeEditModeState(val message: Message?): OneToOneChatViewModelEvent()
+    class AddImagesToSend(val uris: List<Uri>): OneToOneChatViewModelEvent()
+    data object ClearSelectedImages : OneToOneChatViewModelEvent()
+    class RemoveMediaFromSelection(val media: Uri): OneToOneChatViewModelEvent()
+    data object SendMedia: OneToOneChatViewModelEvent()
 }

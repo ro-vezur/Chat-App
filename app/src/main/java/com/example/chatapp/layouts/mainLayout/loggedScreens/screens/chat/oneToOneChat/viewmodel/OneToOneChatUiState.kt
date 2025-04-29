@@ -1,5 +1,6 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel
 
+import android.net.Uri
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.Dtos.chat.Message
 import com.example.chatapp.Dtos.user.User
@@ -10,4 +11,5 @@ data class OneToOneChatUiState(
     val unseenMessagesCount: Int = 0,
     val messageToEdit: Message? = null,
     val usersTyping: List<String> = listOf(),
+    val selectedImagesToSend: List<Uri> = listOf(),
 )

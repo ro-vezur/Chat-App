@@ -1,5 +1,6 @@
 package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -11,9 +12,11 @@ import androidx.paging.map
 import com.example.chatapp.Dtos.chat.ChatItem
 import com.example.chatapp.Dtos.chat.LocalChatInfo
 import com.example.chatapp.Dtos.chat.Message
+import com.example.chatapp.Dtos.chat.enums.MessageType
 import com.example.chatapp.Dtos.notification.NotificationBody
 import com.example.chatapp.Dtos.notification.NotificationData
 import com.example.chatapp.Dtos.notification.SendNotificationDto
+import com.example.chatapp.domain.MediaInterface
 import com.example.chatapp.helpers.time.getCurrentTimeInMillis
 import com.example.chatapp.model.db.chatDb.ChatPagingRepository
 import com.example.chatapp.model.db.chatDb.observers.ObserveChatUseCase
@@ -37,6 +40,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,6 +50,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @HiltViewModel(assistedFactory = OneToOneChatViewModel.Factory::class)
 class OneToOneChatViewModel @AssistedInject constructor(
@@ -68,6 +73,7 @@ class OneToOneChatViewModel @AssistedInject constructor(
     private val deleteMessageUseCase: DeleteMessageUseCase,
     private val editMessageUseCase: EditMessageUseCase,
     private val getCurrentUserIdUseCase: GetCurrentUserIdUseCase,
+    private val mediaInterface: MediaInterface,
 ): ViewModel() {
 
     @AssistedFactory
@@ -79,6 +85,7 @@ class OneToOneChatViewModel @AssistedInject constructor(
     }
 
     private val messagesReadList: MutableList<Message> = mutableListOf()
+    private var sendingMedia = false
 
     private val _chatUiState: MutableStateFlow<OneToOneChatUiState> = MutableStateFlow(OneToOneChatUiState())
     val chatUiState: StateFlow<OneToOneChatUiState> = _chatUiState.asStateFlow()
@@ -222,6 +229,55 @@ class OneToOneChatViewModel @AssistedInject constructor(
             is OneToOneChatViewModelEvent.DeleteMessage -> deleteMessage(event.messageId,event.chatId)
             is OneToOneChatViewModelEvent.ConfirmMessageChanges -> confirmMessageChanges(event.newMessage)
             is OneToOneChatViewModelEvent.ChangeEditModeState -> changeEditModeState(event.message)
+            OneToOneChatViewModelEvent.ClearSelectedImages -> clearSelectedImages()
+            is OneToOneChatViewModelEvent.AddImagesToSend -> addImagesToSend(event.uris)
+            is OneToOneChatViewModelEvent.RemoveMediaFromSelection -> removeMediaFromSelection(event.media)
+            OneToOneChatViewModelEvent.SendMedia -> sendMedia()
+        }
+    }
+
+    private fun sendMedia() = viewModelScope.launch(Dispatchers.IO) {
+        sendingMedia = true
+        _chatUiState.value.selectedImagesToSend.forEach { uri ->
+            val mediaUrl = mediaInterface.uploadImageToServer(uri = uri)
+            val uuid = UUID.randomUUID().toString()
+            val message = Message(
+                id = uuid,
+                userId = getCurrentUserIdUseCase(),
+                chatId = chatId,
+                content = mediaUrl,
+                messageType = MessageType.IMAGE,
+                sentTimeStamp = getCurrentTimeInMillis(),
+            )
+
+            sendMessage(message)
+        }
+
+        clearSelectedImages()
+        sendingMedia = false
+    }
+
+    private fun removeMediaFromSelection(media: Uri) = viewModelScope.launch {
+        if(sendingMedia) return@launch
+
+        _chatUiState.update {
+            it.copy(selectedImagesToSend = it.selectedImagesToSend - media)
+        }
+    }
+
+    private fun addImagesToSend(uris: List<Uri>) = viewModelScope.launch {
+        if(sendingMedia) return@launch
+
+        _chatUiState.update {
+            it.copy(selectedImagesToSend = it.selectedImagesToSend + uris)
+        }
+    }
+
+    private fun clearSelectedImages() = viewModelScope.launch {
+        if(sendingMedia) return@launch
+
+        _chatUiState.update {
+            it.copy(selectedImagesToSend = emptyList())
         }
     }
 
@@ -263,7 +319,7 @@ class OneToOneChatViewModel @AssistedInject constructor(
     private fun clearMessagesReadList() = viewModelScope.launch {
         messagesReadList.clear()
     }
-    private fun addMessageReadList(message: Message,userId: String) = viewModelScope.launch {
+    private fun addMessageReadList(message: Message, userId: String) = viewModelScope.launch {
         if(!message.seenBy.contains(userId) && !messagesReadList.map { it.id }.contains(message.id)) {
             val seenBy = message.seenBy
             if(message.userId != userId) {
@@ -290,8 +346,11 @@ class OneToOneChatViewModel @AssistedInject constructor(
                             token = token,
                             topic = null,
                             notificationBody = NotificationBody(
-                                title = "${senderUserObject.name} Sent You a New Message!",
-                                body = message.content
+                                title = "${senderUserObject.name} Sent You a New ${message.messageType.title}!",
+                                body = when(message.messageType) {
+                                    MessageType.TEXT -> message.content.toString()
+                                    MessageType.IMAGE -> "Image"
+                                }
                             ),
                             data = NotificationData(
                                 senderId = message.id,

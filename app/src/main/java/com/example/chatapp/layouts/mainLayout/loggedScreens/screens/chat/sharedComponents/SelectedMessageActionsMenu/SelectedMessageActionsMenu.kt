@@ -1,4 +1,4 @@
-package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.MessageDropDownMenu
+package com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.SelectedMessageActionsMenu
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -34,9 +34,11 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.example.chatapp.Dtos.chat.Message
+import com.example.chatapp.Dtos.chat.enums.MessageType
 import com.example.chatapp.LocalUser
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.oneToOneChat.viewmodel.OneToOneChatViewModelEvent
+import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chat.sharedComponents.SelectedMessageActionsMenu.SelectedMessageButtonsActions.Companion.actionsOverImageMessage
 import kotlinx.coroutines.Job
 
 @Composable
@@ -52,8 +54,10 @@ fun SelectedMessageActionsMenu(
     var selectedMessageActionsMenuSize by remember { mutableStateOf(IntSize.Zero) }
     val actionsList by remember {
         mutableStateOf(
-            if(selectedMessage.userId == mainUser.id) MessageDropDownMenuButtonAction.actionsOverMyMessages
-            else MessageDropDownMenuButtonAction.actionsOverOtherMessages
+            when(selectedMessage.messageType) {
+                MessageType.TEXT -> if(selectedMessage.userId == mainUser.id) SelectedMessageButtonsActions.actionsOverMyMessages else SelectedMessageButtonsActions.actionsOverOtherMessages
+                MessageType.IMAGE -> actionsOverImageMessage
+            }
         )
     }
     val offset by remember(selectedMessageOffset,selectedMessageSize,selectedMessageActionsMenuSize) {
@@ -117,7 +121,7 @@ fun SelectedMessageActionsMenu(
                             .fillMaxWidth()
                             .clickable {
                                 when (action) {
-                                    MessageDropDownMenuButtonAction.DELETE -> {
+                                    SelectedMessageButtonsActions.DELETE -> {
                                         dispatchEvent(
                                             OneToOneChatViewModelEvent.DeleteMessage(
                                                 selectedMessage.id,
@@ -126,7 +130,7 @@ fun SelectedMessageActionsMenu(
                                         )
                                     }
 
-                                    MessageDropDownMenuButtonAction.EDIT -> {
+                                    SelectedMessageButtonsActions.EDIT -> {
                                         dispatchEvent(
                                             OneToOneChatViewModelEvent.ChangeEditModeState(
                                                 selectedMessage
@@ -134,9 +138,17 @@ fun SelectedMessageActionsMenu(
                                         )
                                         dispatchEvent(
                                             OneToOneChatViewModelEvent.ChangeSendMessageText(
-                                                selectedMessage.content
+                                                selectedMessage.content ?: ""
                                             )
                                         )
+                                    }
+
+                                    SelectedMessageButtonsActions.REPLY -> {
+
+                                    }
+
+                                    SelectedMessageButtonsActions.SHARE -> {
+                                        
                                     }
                                 }
                             },
@@ -151,7 +163,7 @@ fun SelectedMessageActionsMenu(
 @Composable
 fun SelectedMessageMenuActionCard(
     modifier: Modifier,
-    action: MessageDropDownMenuButtonAction
+    action: SelectedMessageButtonsActions
 ) {
     Row(
         modifier = modifier,
