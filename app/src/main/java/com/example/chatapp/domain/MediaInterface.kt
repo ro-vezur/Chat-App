@@ -4,5 +4,5 @@ import android.net.Uri
 
 interface MediaInterface {
     fun getImageFromServer()
-    fun uploadImageToServer(uri: Uri, onSuccess: (imageUrl: String) -> Unit)
+    suspend fun uploadImageToServer(uri: Uri): String
 }

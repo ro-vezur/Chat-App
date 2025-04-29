@@ -5,14 +5,16 @@ import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
 import com.example.chatapp.domain.MediaInterface
+import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 class MediaImpl @Inject constructor(): MediaInterface {
     override fun getImageFromServer() {
 
     }
 
-    override fun uploadImageToServer(uri: Uri,onSuccess: (imageUrl: String) -> Unit) {
+    override suspend fun uploadImageToServer(uri: Uri) = suspendCancellableCoroutine { cont ->
 
         MediaManager.get()
             .upload(uri)
@@ -25,7 +27,7 @@ class MediaImpl @Inject constructor(): MediaInterface {
             }
 
             override fun onSuccess(requestId: String?, resultData: MutableMap<Any?, Any?>?) {
-                (resultData?.get("secure_url") as String).let(onSuccess)
+                (resultData?.get("secure_url") as String).let { imageUrl -> cont.resume(imageUrl) }
             }
 
             override fun onError(requestId: String?, error: ErrorInfo?) {
