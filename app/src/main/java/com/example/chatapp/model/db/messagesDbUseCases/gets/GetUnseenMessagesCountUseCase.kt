@@ -11,7 +11,7 @@ import javax.inject.Inject
 class GetUnseenMessagesCountUseCase @Inject constructor(
     private val db: DatabaseReference
 ) {
-    suspend operator fun invoke(chatId: String,lastReadMessage: Message,mainUserId: String,): Int {
+    suspend operator fun invoke(chatId: String, lastReadMessage: Message, mainUserId: String,): Int {
         return try {
             val chatRef = db.child(CHATS_DB).child(chatId).child(MESSAGES_DB).orderByChild("sentTimeStamp")
                 .startAfter(lastReadMessage.sentTimeStamp?.toDouble() ?: 0.0)

@@ -1,6 +1,6 @@
 package com.example.chatapp.Dtos.chat
 
-import com.example.chatapp.Dtos.chat.chatType.ChatType
+import com.example.chatapp.Dtos.chat.enums.ChatType
 
 data class LocalChatInfo(
     val id: String = "",

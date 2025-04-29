@@ -20,7 +20,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.chatapp.Dtos.chat.ChatUI
-import com.example.chatapp.Dtos.chat.chatType.ChatType
+import com.example.chatapp.Dtos.chat.enums.ChatType
 import com.example.chatapp.LocalUser
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.mainLayout.loggedScreens.screens.chats.viewmodel.ChatsUiState

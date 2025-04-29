@@ -7,7 +7,7 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import androidx.paging.map
 import com.example.chatapp.Dtos.chat.ChatUI
-import com.example.chatapp.Dtos.chat.chatType.ChatType
+import com.example.chatapp.Dtos.chat.enums.ChatType
 import com.example.chatapp.model.db.chatDb.observers.userChatsChanges.ObserveUserChatsChangesUseCase
 import com.example.chatapp.model.db.messagesDbUseCases.gets.GetChatMessageUseCase
 import com.example.chatapp.model.db.sealedChanges.ChatChange

@@ -2,7 +2,7 @@ package com.example.chatapp.model.db.chatDb.usecases.gets
 
 import com.example.chatapp.CHATS_DB
 import com.example.chatapp.Dtos.chat.Chat
-import com.example.chatapp.Dtos.chat.chatType.ChatType
+import com.example.chatapp.Dtos.chat.enums.ChatType
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject

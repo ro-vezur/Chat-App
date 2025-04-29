@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.example.chatapp.Dtos.chat.ChatUI
+import com.example.chatapp.Dtos.chat.enums.MessageType
 import com.example.chatapp.differentScreensSupport.sdp
 import com.example.chatapp.layouts.sharedComponents.images.UserImage
 
@@ -83,9 +84,15 @@ fun ChatUICard(
             Spacer(modifier = Modifier.height(10.sdp))
 
             Text(
-                text = if(chatUI.typingUsersText.isNullOrBlank()) chatUI.lastMessage.content else "${chatUI.typingUsersText}...",
+                text = if(chatUI.typingUsersText.isNullOrBlank()) {
+                    when(chatUI.lastMessage.messageType) {
+                        MessageType.TEXT ->  chatUI.lastMessage.content
+                        MessageType.IMAGE -> MessageType.IMAGE.title
+                    }
+                } else "${chatUI.typingUsersText}...",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondary,
+                maxLines = 1,
                 fontWeight = FontWeight.SemiBold
             )
 

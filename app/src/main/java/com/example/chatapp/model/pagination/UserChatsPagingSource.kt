@@ -6,7 +6,7 @@ import androidx.paging.PagingState
 import com.example.chatapp.Dtos.chat.Chat
 import com.example.chatapp.Dtos.chat.ChatUI
 import com.example.chatapp.Dtos.chat.Message
-import com.example.chatapp.Dtos.chat.chatType.ChatType
+import com.example.chatapp.Dtos.chat.enums.ChatType
 import com.example.chatapp.Dtos.user.User
 import com.example.chatapp.USER_CHATS_PER_PAGE
 import com.google.firebase.firestore.Query
@@ -67,8 +67,7 @@ class UserChatsPagingSource (
                         name = oppositeUser.getOppositeUserName(userId),
                         imageUrl = oppositeUser.getOppositeUserImage(userId),
                         user = oppositeUser,
-                        unseenMessagesCount = chat.messages.dropWhile { messageId -> messageId != lastReadMessage }
-                            .drop(1).size,
+                        unseenMessagesCount = chat.messages.dropWhile { messageId -> messageId != lastReadMessage }.drop(1).size,
                         typingUsersText = typingUsersText,
                         lastUpdateTimestamp = chat.lastUpdateTimestamp
                     )
